@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>משימת הקוביה</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #03020a;
+    --teal: #00e5ff;
+    --purple: #580670;
+    --purple-light: #8a0fb0;
+    --red: #ff3b3b;
+    --blue: #2979ff;
+    --yellow: #ffd600;
+    --surface: #0d0b1a;
+    --surface2: #13102a;
+    --border: rgba(0,229,255,0.18);
+    --text: #c8d4e8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rubik', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(88,6,112,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .screen {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 980px;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .screen.hidden { display: none; }
+  .sys-header { text-align: center; margin-bottom: 4px; }
+  .sys-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--teal);
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .sys-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(0,229,255,0.5), 0 0 60px rgba(0,229,255,0.2);
+    letter-spacing: 2px;
+    line-height: 1.2;
+  }
+  .sys-title span { color: var(--teal); }
+  .sys-subtitle {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--purple-light);
+    margin-top: 6px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,229,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--teal), transparent);
+    opacity: 0.4;
+  }
+  .role-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 500px;
+  }
+  .role-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 16px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .role-btn:hover {
+    border-color: var(--teal);
+    box-shadow: 0 0 20px rgba(0,229,255,0.2);
+    transform: translateY(-2px);
+  }
+  .role-btn .role-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .role-btn .role-tag {
+    font-size: 11px;
+    color: var(--teal);
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+  .role-btn .role-sub {
+    font-size: 11px;
+    color: var(--teal);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    opacity: 0.6;
+  }
+  .role-btn.taken {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .role-btn.taken::after {
+    content: 'תפוס';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(3,2,10,0.7);
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--purple-light);
+    letter-spacing: 2px;
+  }
+  .waiting-msg {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    color: var(--teal);
+    letter-spacing: 2px;
+    text-align: center;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .game-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+  }
+  @media (max-width: 680px) {
+    .game-layout { grid-template-columns: 1fr; }
+  }
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-title .dot {
+    width: 6px; height: 6px;
+    background: var(--teal);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--teal);
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    width: 100%;
+    max-width: 220px;
+    margin: 0 auto 16px;
+  }
+  .cell {
+    border-radius: 7px;
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.2s;
+    aspect-ratio: 1;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cell:hover { transform: scale(1.06); }
+  .cell[data-color="red"] {
+    background: rgba(255,59,59,0.22);
+    border-color: var(--red);
+    box-shadow: 0 0 10px rgba(255,59,59,0.35), inset 0 0 16px rgba(255,59,59,0.08);
+  }
+  .cell[data-color="blue"] {
+    background: rgba(41,121,255,0.22);
+    border-color: var(--blue);
+    box-shadow: 0 0 10px rgba(41,121,255,0.35), inset 0 0 16px rgba(41,121,255,0.08);
+  }
+  .cell[data-color="yellow"] {
+    background: rgba(255,214,0,0.18);
+    border-color: var(--yellow);
+    box-shadow: 0 0 10px rgba(255,214,0,0.3), inset 0 0 16px rgba(255,214,0,0.06);
+  }
+  .cell[data-color="none"] { background: var(--surface2); border-color: rgba(255,255,255,0.06); }
+  .cell-inner {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    transition: background 0.18s, box-shadow 0.18s;
+  }
+  .cell[data-color="red"] .cell-inner { background: var(--red); box-shadow: 0 0 8px var(--red); }
+  .cell[data-color="blue"] .cell-inner { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+  .cell[data-color="yellow"] .cell-inner { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+  .color-legend {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    font-size: 11px;
+    color: rgba(200,212,232,0.5);
+    margin-bottom: 10px;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .progress-wrap {
+    text-align: center;
+    font-size: 11px;
+    font-family: 'Orbitron', monospace;
+    color: rgba(200,212,232,0.45);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    min-height: 20px;
+  }
+  .progress-fill { color: var(--teal); font-size: 16px; font-weight: 700; }
+  .finish-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--purple), var(--purple-light));
+    border: 1px solid rgba(138,15,176,0.6);
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: 2px;
+    text-align: center;
+    transition: all 0.25s;
+    box-shadow: 0 0 18px rgba(88,6,112,0.4);
+    display: block;
+  }
+  .finish-btn:hover { box-shadow: 0 0 28px rgba(138,15,176,0.7); transform: translateY(-1px); }
+  .finish-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+  .status-bar {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--teal);
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .status-bar.error { color: var(--red); border-color: rgba(255,59,59,0.3); }
+  .status-bar.waiting { color: var(--yellow); border-color: rgba(255,214,0,0.2); }
+  .clues-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .clue-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--text);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    line-height: 1.55;
+  }
+  .clue-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    color: var(--teal);
+    min-width: 16px;
+    margin-top: 3px;
+  }
+  .partner-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: rgba(200,212,232,0.6);
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 1px;
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(200,212,232,0.25); }
+  .status-dot.online { background: #00ff88; box-shadow: 0 0 6px #00ff88; }
+  .status-dot.done { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+  #confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
+  .success-overlay {
+    position: fixed; inset: 0; z-index: 99;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(3,2,10,0.92);
+    backdrop-filter: blur(8px);
+  }
+  .success-box {
+    text-align: center; padding: 48px 40px;
+    background: var(--surface);
+    border: 1px solid var(--teal);
+    border-radius: 16px;
+    box-shadow: 0 0 60px rgba(0,229,255,0.3);
+    max-width: 460px;
+  }
+  .success-emoji { font-size: 60px; display: block; margin-bottom: 18px; }
+  .success-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(16px, 4vw, 26px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(0,229,255,0.6);
+    margin-bottom: 10px;
+  }
+  .success-sub { font-size: 13px; color: var(--teal); letter-spacing: 2px; }
+  .scanline {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.35), transparent);
+    animation: scan 7s linear infinite;
+    pointer-events: none; z-index: 50;
+  }
+  @keyframes scan { from{top:-2px} to{top:100vh} }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<!-- ROLE SELECT -->
+<div id="screen-select" class="screen">
+  <div class="sys-header">
+    <div class="sys-label">// INITIALIZING MISSION //</div>
+    <h1 class="sys-title">משימת ה<span>קוביה</span></h1>
+    <div class="sys-subtitle">CUBE MISSION v2.0 - COLLABORATIVE PROTOCOL</div>
+  </div>
+  <div class="card" style="max-width:480px;text-align:center;">
+    <div class="panel-title" style="justify-content:center;margin-bottom:20px;">
+      <span class="dot"></span>בחרו את תפקידכם<span class="dot"></span>
+    </div>
+    <div class="role-grid">
+      <button class="role-btn" id="btn-yuval" onclick="selectRole('yuval')">
+        <div class="role-sub">סוכן א</div>
+        <div class="role-name">יובל</div>
+        <div class="role-tag">AGENT-01</div>
+      </button>
+      <button class="role-btn" id="btn-partner" onclick="selectRole('partner')">
+        <div class="role-sub">סוכן ב</div>
+        <div class="role-name">איתי</div>
+        <div class="role-tag">AGENT-02</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- WAITING -->
+<div id="screen-waiting" class="screen hidden">
+  <div class="sys-header">
+    <div class="sys-label">// SYNCHRONIZING //</div>
+    <h1 class="sys-title">ממתינים ל<span>שותף</span></h1>
+  </div>
+  <div class="card" style="max-width:400px;text-align:center;">
+    <div class="waiting-msg">מחכים לחיבור הסוכן השני... ⏳</div>
+    <p style="margin-top:14px;font-size:13px;color:rgba(200,212,232,0.4);">שתפו את אותו ה-URL עם השותף שלכם</p>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen hidden">
+  <div class="sys-header">
+    <div class="sys-label">// MISSION ACTIVE //</div>
+    <h1 class="sys-title" style="font-size:clamp(18px,4vw,28px);">פצחו את ה<span>קוד</span></h1>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;max-width:900px;">
+    <div id="my-role-badge" class="sys-label" style="margin:0;"></div>
+    <div class="partner-status">
+      <div id="partner-dot" class="status-dot"></div>
+      <span id="partner-label"></span>
+    </div>
+  </div>
+  <div class="game-layout" style="max-width:900px;">
+    <div class="card">
+      <div class="panel-title"><span class="dot"></span>הלוח שלי</div>
+      <div class="board-grid" id="my-board"></div>
+      <div class="color-legend">
+        <span><span class="legend-dot" style="background:var(--red)"></span>אדום</span>
+        <span><span class="legend-dot" style="background:var(--blue)"></span>כחול</span>
+        <span><span class="legend-dot" style="background:var(--yellow)"></span>צהוב</span>
+      </div>
+      <div class="progress-wrap" id="my-progress"></div>
+      <button class="finish-btn" id="finish-btn" onclick="handleFinish()" disabled>! סיימתי</button>
+      <div id="my-status" class="status-bar" style="display:none;"></div>
+    </div>
+    <div class="card">
+      <div class="panel-title"><span class="dot"></span>רמזים על לוח השותף</div>
+      <ul class="clues-list" id="clues-list"></ul>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC-pL-2QYZw2-VX42nAuvwHK9hJj_GQfoQ",
+  authDomain: "cube-color-clues.firebaseapp.com",
+  databaseURL: "https://cube-color-clues-default-rtdb.firebaseio.com",
+  projectId: "cube-color-clues",
+  storageBucket: "cube-color-clues.firebasestorage.app",
+  messagingSenderId: "864403622393",
+  appId: "1:864403622393:web:ad5efd5f6e0169edd75528"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const ROOM = "cube-mission";
+
+// ─── SOLUTIONS (3 cols x 4 rows, index: row*3+col) ───
+// לוח יובל:  [Y,B,Y / B,R,B / B,R,B / Y,B,Y]
+// לוח איתי:  [R,B,B / B,B,R / R,B,B / B,B,R]
+const SOLUTIONS = {
+  yuval:   ["yellow","blue","yellow","blue","red","blue","blue","red","blue","yellow","blue","yellow"],
+  partner: ["red","blue","blue","blue","blue","red","red","blue","blue","blue","blue","red"]
+};
+
+// ─── CLUES ───
+// יובל רואה רמזים על לוח איתי: [R,B,B / B,B,R / R,B,B / B,B,R]
+// איתי רואה רמזים על לוח יובל: [Y,B,Y / B,R,B / B,R,B / Y,B,Y]
+const CLUES = {
+  yuval: [
+    "בכל שורה יש בדיוק משבצת אדומה אחת",
+    "בעמודה האמצעית אין אדום בכלל",
+    "אדום אף פעם לא צמוד לאדום אחר - לא אופקית ולא אנכית",
+    "בשתי השורות העליונות האדום נמצא בצדדים מנוגדים",
+    "יש בדיוק 4 משבצות אדומות בכל הלוח",
+    "כל משבצת כחולה צמודה לפחות לאדום אחד"
+  ],
+  partner: [
+    "צהוב אף פעם לא צמוד לאדום - תמיד מפריד ביניהם לפחות כחול אחד",
+    "כל משבצת אדומה צמודה לכחול בלבד מכל הצדדים - ללא יוצא מן הכלל",
+    "שתי האדומות צמודות אחת לשנייה",
+    "אין שני צהובים צמודים אחד לשני בשום מקום בלוח",
+    "יש בדיוק 2 משבצות אדומות בכל הלוח",
+    "כל משבצת כחולה נוגעת בלפחות שני צבעים שונים"
+  ]
+};
+
+let myRole = null;
+let boardState = Array(12).fill("none");
+const CYCLE = ["none","red","blue","yellow"];
+let gameInitialized = false;
+
+window.selectRole = async function(role) {
+  const roleRef = ref(db, `${ROOM}/roles/${role}`);
+  const snap = await get(roleRef);
+  if (snap.exists()) {
+    alert("תפקיד זה כבר נלקח! בחר/י תפקיד אחר.");
+    return;
+  }
+  await set(roleRef, true);
+  myRole = role;
+  document.getElementById("screen-select").classList.add("hidden");
+  document.getElementById("screen-waiting").classList.remove("hidden");
+  listenForBothPlayers();
+};
+
+function listenForBothPlayers() {
+  const rolesRef = ref(db, `${ROOM}/roles`);
+  onValue(rolesRef, snap => {
+    const roles = snap.val() || {};
+    if (roles.yuval && roles.partner && !gameInitialized) {
+      gameInitialized = true;
+      initGame();
+    }
+    if (!myRole) {
+      document.getElementById("btn-yuval").classList.toggle("taken", !!roles.yuval);
+      document.getElementById("btn-partner").classList.toggle("taken", !!roles.partner);
+    }
+  });
+}
+
+function initGame() {
+  document.getElementById("screen-waiting").classList.add("hidden");
+  document.getElementById("screen-game").classList.remove("hidden");
+
+  const isYuval = myRole === "yuval";
+  const partnerRole = isYuval ? "partner" : "yuval";
+  const partnerName = isYuval ? "איתי" : "יובל";
+  const myName = isYuval ? "יובל" : "איתי";
+
+  document.getElementById("my-role-badge").textContent = `// AGENT: ${myName.toUpperCase()} //`;
+  document.getElementById("partner-label").textContent = `${partnerName} - מחובר`;
+  document.getElementById("partner-dot").className = "status-dot online";
+
+  const boardEl = document.getElementById("my-board");
+  boardEl.innerHTML = "";
+  for (let i = 0; i < 12; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.index = i;
+    cell.dataset.color = "none";
+    const inner = document.createElement("div");
+    inner.className = "cell-inner";
+    cell.appendChild(inner);
+    cell.addEventListener("click", () => cycleCell(i));
+    boardEl.appendChild(cell);
+  }
+
+  const cluesList = document.getElementById("clues-list");
+  cluesList.innerHTML = "";
+  CLUES[myRole].forEach((clue, i) => {
+    const li = document.createElement("li");
+    li.className = "clue-item";
+    const num = i < 9 ? `0${i+1}` : `${i+1}`;
+    li.innerHTML = `<span class="clue-num">${num}</span><span>${clue}</span>`;
+    cluesList.appendChild(li);
+  });
+
+  updateProgress();
+
+  const partnerStatusRef = ref(db, `${ROOM}/status/${partnerRole}`);
+  onValue(partnerStatusRef, snap => {
+    const val = snap.val();
+    if (val === "correct" || val === "waiting") {
+      document.getElementById("partner-dot").className = "status-dot done";
+      document.getElementById("partner-label").textContent = `${partnerName} - סיים`;
+    }
+    checkBothDone();
+  });
+}
+
+function cycleCell(index) {
+  if (document.getElementById("finish-btn").dataset.submitted === "true") return;
+  const cur = CYCLE.indexOf(boardState[index]);
+  boardState[index] = CYCLE[(cur + 1) % CYCLE.length];
+  const cells = document.querySelectorAll(".cell");
+  cells[index].dataset.color = boardState[index];
+  updateProgress();
+}
+
+function updateProgress() {
+  const filled = boardState.filter(c => c !== "none").length;
+  document.getElementById("finish-btn").disabled = filled < 12;
+  const prog = document.getElementById("my-progress");
+  if (filled === 0) prog.innerHTML = "";
+  else if (filled === 12) prog.innerHTML = `<span class="progress-fill">✓</span> כל המשבצות צבועות`;
+  else prog.innerHTML = `<span class="progress-fill">${filled}</span>/12 משבצות`;
+}
+
+window.handleFinish = async function() {
+  const btn = document.getElementById("finish-btn");
+  if (btn.dataset.submitted === "true") return;
+  btn.dataset.submitted = "true";
+  btn.disabled = true;
+
+  const correct = boardState.every((color, i) => color === SOLUTIONS[myRole][i]);
+  const statusEl = document.getElementById("my-status");
+  statusEl.style.display = "flex";
+
+  if (!correct) {
+    statusEl.className = "status-bar error";
+    statusEl.textContent = "משהו לא מסתדר - בדקו את הרמזים שוב 🔍";
+    btn.dataset.submitted = "false";
+    btn.disabled = false;
+    return;
+  }
+
+  await set(ref(db, `${ROOM}/status/${myRole}`), "waiting");
+  statusEl.className = "status-bar waiting";
+  statusEl.textContent = "ממתינים לשותף... ⏳";
+  checkBothDone();
+};
+
+async function checkBothDone() {
+  const snap = await get(ref(db, `${ROOM}/status`));
+  const status = snap.val() || {};
+  if (status.yuval === "waiting" && status.partner === "waiting") {
+    showSuccess();
+  }
+}
+
+function showSuccess() {
+  if (document.getElementById("success-overlay")) return;
+  const overlay = document.createElement("div");
+  overlay.className = "success-overlay";
+  overlay.id = "success-overlay";
+  overlay.innerHTML = `
+    <div class="success-box">
+      <span class="success-emoji">🎉</span>
+      <div class="success-title">!מושלם! עבדתם יחד כמו מכונה משומנת</div>
+      <div class="success-sub" style="margin-top:10px;">MISSION ACCOMPLISHED - 100% SYNC</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const canvas = document.getElementById("confetti-canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const COLORS = ["#00e5ff","#580670","#ff3b3b","#ffd600","#2979ff","#8a0fb0","#ffffff"];
+  const particles = Array.from({length:200}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    w: Math.random() * 10 + 5,
+    h: Math.random() * 6 + 3,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (Math.random() - 0.5) * 0.14,
+    vy: Math.random() * 3 + 2,
+    vx: (Math.random() - 0.5) * 2,
+    alpha: 1
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y += p.vy; p.x += p.vx; p.rot += p.rotSpeed;
+      if (frame > 120) p.alpha -= 0.007;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 280) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+(function init() {
+  const rolesRef = ref(db, `${ROOM}/roles`);
+  onValue(rolesRef, snap => {
+    const roles = snap.val() || {};
+    if (!myRole) {
+      document.getElementById("btn-yuval").classList.toggle("taken", !!roles.yuval);
+      document.getElementById("btn-partner").classList.toggle("taken", !!roles.partner);
+    }
+  });
+  const statusRef = ref(db, `${ROOM}/status`);
+  onValue(statusRef, snap => {
+    const status = snap.val() || {};
+    if (status.yuval === "waiting" && status.partner === "waiting") {
+      if (!document.getElementById("success-overlay")) showSuccess();
+    }
+  });
+})();
+</script>
+</body>
+</html>
