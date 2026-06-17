@@ -12,6 +12,7 @@
     --bg:#03020a;
     --turq:#00e5ff;
     --purple:#580670;
+    --purple-br:#a855f7;
     --panel:rgba(12,8,28,0.78);
     --panel-line:rgba(0,229,255,0.22);
     --c-red:#ff3860;
@@ -50,18 +51,19 @@
 
   /* ===== Opening screen ===== */
   .opening{min-height:74vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px}
-  .opening h1{font-size:54px;font-weight:900;letter-spacing:5px;
-    background:linear-gradient(90deg,var(--turq),#c06bff);
+  .title-row{display:flex;align-items:center;justify-content:center;gap:16px;white-space:nowrap}
+  .title-row .ic{font-size:clamp(26px,7vw,44px);line-height:1;filter:drop-shadow(0 0 14px rgba(0,229,255,0.35))}
+  .opening h1{font-size:clamp(34px,9vw,58px);font-weight:300;letter-spacing:clamp(2px,1vw,6px);white-space:nowrap;
+    background:linear-gradient(90deg,var(--turq),var(--purple-br));
     -webkit-background-clip:text;background-clip:text;color:transparent;
-    text-shadow:0 0 40px rgba(0,229,255,0.3)}
-  .opening .sub{font-size:20px;color:var(--ink-dim);font-weight:500}
+    text-shadow:0 0 40px rgba(0,229,255,0.25)}
   .opening h2{font-size:30px;font-weight:700;margin-top:8px}
   .choose{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
   .name-btn{
-    font-family:inherit;cursor:pointer;font-weight:800;font-size:30px;color:#fff;
+    font-family:inherit;cursor:pointer;font-weight:800;font-size:30px;color:var(--turq);
     padding:26px 54px;border-radius:18px;border:2px solid var(--panel-line);
-    background:linear-gradient(160deg,rgba(0,229,255,0.10),rgba(88,6,112,0.30));
-    box-shadow:0 10px 0 rgba(0,0,0,0.45),inset 0 2px 4px rgba(255,255,255,0.12),0 0 30px rgba(0,229,255,0.10);
+    background:linear-gradient(160deg,rgba(120,30,170,0.55),rgba(88,6,112,0.42));
+    box-shadow:0 10px 0 rgba(0,0,0,0.45),inset 0 2px 4px rgba(255,255,255,0.12),0 0 30px rgba(88,6,112,0.28);
     transition:transform .12s,box-shadow .12s,border-color .12s;min-width:200px}
   .name-btn:hover{transform:translateY(-3px);border-color:var(--turq);box-shadow:0 13px 0 rgba(0,0,0,0.45),inset 0 2px 4px rgba(255,255,255,0.18),0 0 44px rgba(0,229,255,0.22)}
   .name-btn:active{transform:translateY(3px);box-shadow:0 5px 0 rgba(0,0,0,0.45),inset 0 2px 4px rgba(255,255,255,0.10)}
@@ -177,8 +179,7 @@
 
   <!-- OPENING -->
   <div id="screen-open" class="opening hidden">
-    <h1>CUBE LOGIC</h1>
-    <div class="sub">מערכת שליטה - מבצע משותף</div>
+    <div class="title-row"><span class="ic">🔳</span><h1>CUBE LOGIC</h1><span class="ic">🔳</span></div>
     <h2>מי אתם?</h2>
     <div class="choose">
       <button class="name-btn" data-role="yuval" id="btn-yuval">יובל</button>
@@ -333,6 +334,19 @@ let myRole = null;
 let remote = null;          // צילום מצב מ-Firebase
 let lastProcessedStage = 0; // למניעת מעבר שלב כפול
 let selectedTray = null;    // שלב 4 - לוח שנבחר מהמאגר
+let hbTimer = null;
+
+const STALE_MS = 15000;     // תפקיד נחשב פעיל רק אם הסימן החי עודכן ב-15 השניות האחרונות
+const HB_MS = 5000;         // קצב הסימן החי
+
+// מזהה ייחודי ללשונית - שורד ריענון (sessionStorage) אך נפרד בין לשוניות/מכשירים
+let clientId;
+try{
+  clientId = sessionStorage.getItem("cl_id");
+  if(!clientId){ clientId = "c_"+Math.random().toString(36).slice(2)+Date.now().toString(36); sessionStorage.setItem("cl_id",clientId); }
+}catch(e){ clientId = window.__clid || (window.__clid = "c_"+Math.random().toString(36).slice(2)+Date.now().toString(36)); }
+
+function isFreshRole(v){ return v && typeof v==="object" && v.ts && (Date.now()-v.ts < STALE_MS); }
 
 const $ = id => document.getElementById(id);
 const screens = ["loading","open","play","s4","win"];
@@ -345,8 +359,9 @@ function initOpening(){
     const roles = snap.val()||{};
     ["yuval","partner"].forEach(role=>{
       const btn = $(role==="yuval"?"btn-yuval":"btn-partner");
-      const taken = roles[role] && role!==myRole;
-      btn.classList.toggle("taken", !!taken);
+      const v = roles[role];
+      const takenByOther = isFreshRole(v) && v.id!==clientId; // ערך ישן (true / לא טרי) נחשב פנוי
+      btn.classList.toggle("taken", takenByOther);
     });
   });
   document.querySelectorAll(".name-btn").forEach(btn=>{
@@ -356,12 +371,27 @@ function initOpening(){
 
 async function claimRole(role){
   if(myRole) return;
-  const res = await runTransaction(R("roles/"+role), cur => (cur ? undefined : true));
-  if(!res.committed){ $("taken-note").textContent = `התפקיד "${NAME[role]}" כבר תפוס. בחרו את השני.`; return; }
+  const other = role==="yuval"?"partner":"yuval";
+  const res = await runTransaction(R("roles/"+role), cur => {
+    if(isFreshRole(cur) && cur.id!==clientId) return undefined; // תפוס באמת ע"י אחר -> בטל
+    return { id:clientId, ts:Date.now() };                      // פנוי / ישן / שלי -> תפוס מחדש
+  });
+  if(!res.committed){
+    $("taken-note").textContent = `${NAME[role]} כבר בפנים. בחרו את "${NAME[other]}".`;
+    return;
+  }
   myRole = role;
-  onDisconnect(R("roles/"+role)).remove(); // שחרור תפקיד אוטומטי בריענון/סגירה
+  onDisconnect(R("roles/"+role)).remove(); // שחרור תפקיד אוטומטי בניתוק/ריענון
+  startHeartbeat();
   await initRoomIfNeeded();
   subscribe();
+}
+
+function startHeartbeat(){
+  if(hbTimer) clearInterval(hbTimer);
+  const beat = ()=>{ if(myRole) set(R("roles/"+myRole), { id:clientId, ts:Date.now() }); };
+  beat();
+  hbTimer = setInterval(beat, HB_MS);
 }
 
 async function initRoomIfNeeded(){
@@ -380,6 +410,7 @@ function emptyBoard(){ return Array(9).fill("none"); }
 function subscribe(){
   onValue(R(), snap=>{
     remote = snap.val()||{};
+    if(remote.status && remote.status.yuval==="waiting" && remote.status.partner==="waiting") lastProcessedStage = 0;
     render();
     maybeAdvance();
   });
@@ -654,10 +685,12 @@ function launchConfetti(){
 async function resetGame(){
   if(!confirm("לאפס את כל המשחק לשני השחקנים?")) return;
   lastProcessedStage=0;
-  await set(R(), {
+  await update(R(), {
     stage:1,
     boards:{ yuval:emptyBoard(), partner:emptyBoard() },
-    status:{ yuval:"waiting", partner:"waiting" }
+    status:{ yuval:"waiting", partner:"waiting" },
+    gallery:null,
+    arrangement:null
   });
 }
 ["reset-play","reset-s4","reset-win"].forEach(id=>$(id).addEventListener("click",resetGame));
