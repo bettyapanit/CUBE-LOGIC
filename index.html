@@ -18,7 +18,7 @@
     --c-red:#ff3860;
     --c-blue:#2e7dff;
     --c-yellow:#ffd23f;
-    --c-none:rgba(120,120,160,0.12);
+    --c-none:rgba(150,162,205,0.30);
     --ink:#eaf6ff;
     --ink-dim:#9fb6c9;
   }
@@ -81,10 +81,10 @@
   .board-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
   .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(300px,72vw);direction:ltr}
   .cell{aspect-ratio:1/1;border-radius:11px;cursor:pointer;background:var(--c-none);
-    border:1px solid rgba(255,255,255,0.06);
-    box-shadow:0 5px 0 rgba(0,0,0,0.45),inset 0 3px 5px rgba(255,255,255,0.22),inset 0 -5px 7px rgba(0,0,0,0.28);
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 8px 0 rgba(0,0,0,0.6),inset 0 4px 6px rgba(255,255,255,0.30),inset 0 -7px 9px rgba(0,0,0,0.42);
     transition:transform .08s,box-shadow .08s}
-  .cell:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,0.45),inset 0 3px 5px rgba(255,255,255,0.18)}
+  .cell:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,0.6),inset 0 4px 6px rgba(255,255,255,0.22)}
   .cell.red{background:var(--c-red)}
   .cell.blue{background:var(--c-blue)}
   .cell.yellow{background:var(--c-yellow)}
@@ -115,7 +115,7 @@
 
   /* ===== Gallery ===== */
   .gallery{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
-  .gal-col h4{font-size:14px;font-weight:700;text-align:center;margin-bottom:9px;color:#fff}
+  .gal-col h4{font-size:22px;font-weight:800;text-align:center;margin-bottom:9px;color:var(--purple-br)}
   .gal-row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;min-height:62px}
   .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:54px;direction:ltr;
     padding:3px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,255,255,0.07)}
@@ -126,12 +126,11 @@
   .stage4-head{text-align:center;margin-bottom:14px}
   .stage4-head .t{font-size:24px;font-weight:800}
   .stage4-head .s{font-size:15px;color:var(--ink-dim);margin-top:5px}
-  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;direction:ltr;
-    width:min(560px,94vw);margin:0 auto 18px}
-  .slot{aspect-ratio:1/1;border-radius:12px;border:2px dashed rgba(0,229,255,0.35);
+  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:0;direction:ltr;
+    width:min(560px,94vw);margin:0 auto 18px;border:1px solid var(--panel-line);border-radius:12px;overflow:hidden}
+  .slot{aspect-ratio:1/1;border:1px solid rgba(0,229,255,0.18);
     background:rgba(0,229,255,0.03);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
-  .slot.filled{border-style:solid;border-color:rgba(0,229,255,0.5);cursor:default}
-  .slot .slot-num{position:absolute;top:4px;inset-inline-start:6px;font-size:12px;color:var(--ink-dim);font-weight:700;direction:rtl}
+  .slot.filled{border-color:rgba(0,229,255,0.3);cursor:default}
   .placed{width:100%;height:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;cursor:pointer}
   .placed i{border-radius:4px;background:var(--c-none);
     box-shadow:inset 0 2px 3px rgba(255,255,255,0.18),inset 0 -3px 4px rgba(0,0,0,0.25)}
@@ -151,10 +150,8 @@
   .tray-mini i{aspect-ratio:1/1;border-radius:3px;background:var(--c-none)}
   .tray-mini i.red{background:var(--c-red)}.tray-mini i.blue{background:var(--c-blue)}.tray-mini i.yellow{background:var(--c-yellow)}
 
-  .s4-clues{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-  @media(max-width:680px){.s4-clues{grid-template-columns:1fr}.slots{gap:8px}.placed{gap:3px;padding:6px}}
-  .shared-clue{text-align:center;font-size:15px;color:#ffd23f;background:rgba(255,210,63,0.07);
-    border:1px solid rgba(255,210,63,0.3);border-radius:11px;padding:11px 13px;line-height:1.5}
+  .s4-clues{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;max-width:620px;margin-inline:auto}
+  @media(max-width:680px){.placed{gap:3px;padding:6px}}
 
   /* ===== Success ===== */
   .success{text-align:center;padding:36px 10px;display:flex;flex-direction:column;align-items:center;gap:20px}
@@ -170,6 +167,37 @@
   .reset-btn:hover{color:#ff8aa0;border-color:#ff8aa0}
   .footer{margin-top:26px;text-align:center}
   .loading{min-height:60vh;display:flex;align-items:center;justify-content:center;color:var(--ink-dim);font-size:18px}
+
+  /* ===== v2 additions ===== */
+  .name-pill{font-weight:800;font-size:18px;color:var(--turq);
+    border:1px solid var(--panel-line);border-radius:999px;padding:6px 18px;background:rgba(0,229,255,0.06)}
+  .instr-btn{font-family:inherit;font-weight:700;font-size:14px;color:var(--turq);cursor:pointer;
+    border:1px solid var(--panel-line);border-radius:999px;padding:8px 18px;background:rgba(88,6,112,0.28)}
+  .instr-btn:hover{border-color:var(--turq);background:rgba(88,6,112,0.45)}
+  h3.board-title,h3.panel-title{display:block;font-size:26px;font-weight:800;color:#fff;text-align:center;margin-bottom:14px}
+  .gal-section{font-size:26px;font-weight:800;text-align:center;color:#fff;margin:6px 0 14px}
+  ol.clues-num{list-style:decimal;padding-inline-start:26px;margin:0;display:flex;flex-direction:column;gap:8px}
+  ol.clues-num li{font-size:16px;line-height:1.5;padding-inline-start:4px}
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(2,1,8,0.80);display:flex;align-items:center;justify-content:center;z-index:80;padding:20px}
+  .modal-box{position:relative;max-width:540px;width:100%;background:var(--panel);border:1px solid var(--turq);
+    border-radius:18px;padding:32px 26px 22px;box-shadow:0 0 44px rgba(0,229,255,0.22)}
+  .modal-x{position:absolute;top:10px;inset-inline-end:12px;width:34px;height:34px;border-radius:9px;
+    border:1px solid var(--panel-line);background:rgba(3,2,10,0.7);color:#fff;font-size:16px;cursor:pointer}
+  .modal-text{font-size:17px;line-height:1.7;color:var(--ink)}
+  .modal-close{margin:20px auto 0;font-family:inherit;font-weight:700;font-size:16px;cursor:pointer;color:#03121a;
+    padding:11px 30px;border-radius:11px;border:none;background:linear-gradient(180deg,#7df9ff,var(--turq));display:block}
+  /* code input (stage 4) */
+  .code-box{max-width:420px;margin:0 auto 22px;text-align:center}
+  .code-box .ct{font-size:18px;font-weight:700;color:#fff;margin-bottom:10px}
+  .code-input{font-family:inherit;font-size:24px;font-weight:800;text-align:center;width:150px;
+    padding:10px;border-radius:11px;border:2px solid var(--panel-line);background:rgba(3,2,10,0.6);color:var(--turq);letter-spacing:4px}
+  .code-input:focus{outline:none;border-color:var(--turq)}
+  .code-btn{display:block;margin:14px auto 0;font-family:inherit;font-weight:800;font-size:18px;cursor:pointer;color:#03121a;
+    padding:12px 34px;border-radius:12px;border:none;background:linear-gradient(180deg,#7df9ff,var(--turq));box-shadow:0 6px 0 #0a6b78}
+  .code-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #0a6b78}
+  .code-feedback{margin-top:12px;font-weight:600;font-size:16px;color:#ff8aa0;min-height:22px;line-height:1.5}
+  .big-congrats{font-size:30px;font-weight:900;color:var(--turq);line-height:1.4;max-width:560px}
 </style>
 </head>
 <body>
@@ -192,12 +220,12 @@
   <div id="screen-play" class="hidden">
     <div class="top">
       <div class="logo">CUBE LOGIC</div>
-      <div class="stage-pill" id="stage-pill">שלב 1 מתוך 4</div>
-      <div class="who-tag">אתם: <b id="who-name"></b></div>
+      <div class="name-pill" id="play-name"></div>
+      <button class="instr-btn" id="instr-play">הוראות</button>
     </div>
     <div class="play-grid">
       <div class="card">
-        <h3>🟦 הלוח שלכם - צבעו אותו</h3>
+        <h3 class="board-title" id="board-title"></h3>
         <div class="board-wrap">
           <div class="board" id="my-board"></div>
           <button class="done-btn" id="done-btn" disabled>סיימתי!</button>
@@ -206,6 +234,7 @@
       </div>
       <div class="card" id="clue-card"></div>
     </div>
+    <div class="gal-section">הלוחות שפתרתם</div>
     <div class="gallery" id="gallery"></div>
     <div class="footer"><button class="reset-btn" id="reset-play">איפוס משחק</button></div>
   </div>
@@ -214,28 +243,40 @@
   <div id="screen-s4" class="hidden">
     <div class="top">
       <div class="logo">CUBE LOGIC</div>
-      <div class="stage-pill">שלב 4 מתוך 4 - הסידור הסופי</div>
-      <div class="who-tag">אתם: <b id="who-name-4"></b></div>
+      <div class="name-pill" id="s4-name"></div>
     </div>
-    <div class="stage4-head">
-      <div class="t">סדרו את 6 הלוחות</div>
-      <div class="s">בחרו לוח מהמאגר, הניחו במשבצת, ולחצו על הלוח כדי לסובב אותו. שתפו פעולה לפי הרמזים.</div>
+    <h3 class="board-title">הלוח המשותף</h3>
+    <div style="text-align:center;margin-bottom:18px">
+      <button class="instr-btn" id="instr-s4">הוראות ללוח המשותף</button>
     </div>
     <div class="slots" id="slots"></div>
+    <div class="code-box">
+      <div class="ct">הזינו את הקוד שזיהיתם</div>
+      <input class="code-input" id="code-input" inputmode="numeric" maxlength="4" autocomplete="off">
+      <button class="code-btn" id="code-btn">בדיקת הקוד</button>
+      <div class="code-feedback" id="code-feedback"></div>
+    </div>
     <div class="tray" id="tray"></div>
     <div class="s4-clues" id="s4-clues"></div>
-    <div class="shared-clue" id="shared-clue"></div>
     <div class="footer"><button class="reset-btn" id="reset-s4">איפוס משחק</button></div>
   </div>
 
   <!-- SUCCESS -->
   <div id="screen-win" class="hidden">
     <div class="success">
-      <h2>מושלם! פיצחתם את הקוד יחד 🎉</h2>
+      <h2>מושלם! פיצחתם את הקוד יחד</h2>
       <div class="reveal" id="reveal"></div>
-      <p style="color:var(--ink-dim);font-size:16px;max-width:480px;line-height:1.6">
-        המשבצות הצהובות ציירו את המספר שמחבר את כל ההרפתקה.</p>
+      <div class="big-congrats">מזל טוב ליובל! יומולדת 12 מתקרב...</div>
       <button class="reset-btn" id="reset-win">למשחק חדש</button>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <button class="modal-x" id="modal-x">✕</button>
+      <div class="modal-text" id="modal-text"></div>
+      <button class="modal-close" id="modal-close">סגור</button>
     </div>
   </div>
 </div>
@@ -250,61 +291,61 @@ const ROOM = "cube-mission";
 const NAME = { yuval:"יובל", partner:"איתי" };
 const CELL = ["שמאל-עליון","אמצע-עליון","ימין-עליון","שמאל-אמצע","מרכז","ימין-אמצע","שמאל-תחתון","אמצע-תחתון","ימין-תחתון"];
 
-// raw = מה שכל שחקן בונה בשלבים 1-3 ; selfClues = הרמזים לפתרון הלוח (מוצגים אצל השותף) ; bridge = הגישור של השחקן
+// raw = מה שכל שחקן בונה בשלבים 1-3 ; selfClues = הרמזים לפתרון הלוח (מוצגים אצל השותף) ; bridge = הגישור (מנקודת מבט בעל הלוח)
 const STAGES = {
   1:{
-    yuval:{ raw:["blue","blue","blue","yellow","yellow","yellow","yellow","red","red"],
-      selfClues:["כל השורה העליונה כחולה","כל השורה האמצעית צהובה","שתי המשבצות האדומות צמודות אופקית","הפינה הימנית-התחתונה אדומה"],
-      bridge:{my:6,partner:2} },
-    partner:{ raw:["blue","blue","yellow","blue","blue","red","blue","blue","yellow"],
-      selfClues:["יש בדיוק 6 משבצות כחולות","כל העמודה השמאלית כחולה","כל העמודה האמצעית כחולה","אין אדום בשורה העליונה","אין אדום בשורה התחתונה"],
-      bridge:{my:5,partner:8} }
+    yuval:{ raw:["red","blue","red","yellow","yellow","yellow","yellow","red","blue"],
+      selfClues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-התחתונה צהובה","הפינה הימנית-התחתונה כחולה","אין שתי משבצות אדומות צמודות זו לזו","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים"],
+      bridge:{my:1,partner:4} },
+    partner:{ raw:["red","blue","yellow","red","blue","blue","red","blue","blue"],
+      selfClues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה צהובה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה מוקפת רק בכחול מכל הצדדים"],
+      bridge:{my:8,partner:8} }
   },
   2:{
-    yuval:{ raw:["blue","yellow","yellow","blue","yellow","red","blue","yellow","yellow"],
-      selfClues:["יש בדיוק 3 משבצות כחולות","המשבצת המרכזית צהובה","כל העמודה השמאלית כחולה","אין אדום בשורה העליונה","אין אדום בשורה התחתונה"],
-      bridge:{my:5,partner:2} },
-    partner:{ raw:["yellow","blue","red","yellow","yellow","yellow","yellow","blue","blue"],
-      selfClues:["יש בדיוק 5 משבצות צהובות","כל העמודה השמאלית צהובה","כל השורה האמצעית צהובה","אין אדום בשורה התחתונה","הפינה הימנית-העליונה אדומה"],
-      bridge:{my:1,partner:0} }
+    yuval:{ raw:["red","yellow","blue","red","yellow","blue","red","yellow","yellow"],
+      selfClues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת"],
+      bridge:{my:8,partner:0} },
+    partner:{ raw:["yellow","yellow","blue","red","red","red","yellow","yellow","blue"],
+      selfClues:["יש בדיוק 4 משבצות צהובות","הפינה הימנית-העליונה כחולה","הפינה הימנית-התחתונה כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים"],
+      bridge:{my:3,partner:0} }
   },
   3:{
-    yuval:{ raw:["yellow","blue","blue","yellow","blue","blue","yellow","red","red"],
-      selfClues:["יש בדיוק 3 משבצות צהובות","כל העמודה השמאלית צהובה","אין אדום בשורה העליונה","אין אדום בשורה האמצעית","הפינה הימנית-התחתונה אדומה"],
-      bridge:{my:7,partner:8} },
-    partner:{ raw:["blue","yellow","yellow","blue","blue","blue","blue","red","red"],
-      selfClues:["יש בדיוק 5 משבצות כחולות","כל העמודה השמאלית כחולה","אין אדום בשורה העליונה","כל השורה האמצעית כחולה","הפינה הימנית-התחתונה אדומה"],
-      bridge:{my:7,partner:8} }
+    yuval:{ raw:["yellow","red","blue","yellow","red","blue","yellow","red","red"],
+      selfClues:["יש בדיוק 3 משבצות צהובות","הפינה השמאלית-העליונה צהובה","הפינה הימנית-העליונה כחולה","אף משבצת צהובה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת כחולה גובלת בדיוק ב-1 צבעים אחרים"],
+      bridge:{my:8,partner:2} },
+    partner:{ raw:["yellow","red","red","yellow","yellow","yellow","yellow","blue","blue"],
+      selfClues:["יש בדיוק 2 משבצות אדומות","הפינה הימנית-העליונה אדומה","הפינה הימנית-התחתונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת"],
+      bridge:{my:6,partner:0} }
   }
 };
 
 // שלב 4: כל לוח, מי בנה אותו ובאיזה שלב, וכינוי
 const S4_BOARDS = [
-  { id:"A", owner:"yuval",   stage:1, label:"לוח 1 של יובל" },
-  { id:"C", owner:"yuval",   stage:2, label:"לוח 2 של יובל" },
-  { id:"E", owner:"yuval",   stage:3, label:"לוח 3 של יובל" },
-  { id:"B", owner:"partner", stage:1, label:"לוח 1 של איתי" },
-  { id:"D", owner:"partner", stage:2, label:"לוח 2 של איתי" },
-  { id:"F", owner:"partner", stage:3, label:"לוח 3 של איתי" },
+  { id:"A", owner:"yuval",   stage:1, label:"יובל לוח #1" },
+  { id:"C", owner:"yuval",   stage:2, label:"יובל לוח #2" },
+  { id:"E", owner:"yuval",   stage:3, label:"יובל לוח #3" },
+  { id:"B", owner:"partner", stage:1, label:"איתי לוח #1" },
+  { id:"F", owner:"partner", stage:2, label:"איתי לוח #2" },
+  { id:"D", owner:"partner", stage:3, label:"איתי לוח #3" },
 ];
-const S4_CLUES = {
-  yuval:[
-    "לוח 1 של יובל מסובב 90 מעלות ימינה, והוא הפינה השמאלית-העליונה של הסידור.",
-    "לוח 2 של יובל ולוח 3 של יובל שניהם מסובבים חצי סיבוב (180 מעלות) - אחד סוגר את השורה העליונה מימין, השני באמצע השורה התחתונה."
-  ],
-  partner:[
-    "לוח 1 של איתי הוא היחיד שלא צריך שום סיבוב - הוא יושב בין שני לוחות אחרים בשורה העליונה.",
-    "לוח 2 של איתי מסובב 90 מעלות שמאלה, והוא פותח את השורה התחתונה (פינה שמאלית-תחתונה)."
-  ]
-};
-const SHARED_CLUE = "כשתסדרו נכון - כולל הסיבובים - צבע אחד יצייר סימן מוכר: מספר שמתחבר להרפתקה כולה.";
+// כללי הסידור (מרומזים, ממוספרים 1-4 ברצף)
+const S4_RULES = [
+  "הלוח היחיד שמסובב רבע סיבוב (90 מעלות) עם כיוון השעון פותח את השורה העליונה (הקצה שלה)",
+  "שני הלוחות שלא זזים כלל (ללא סיבוב) - אחד באמצע השורה העליונה, השני בקצה השורה התחתונה",
+  "הלוח שמסובב רבע סיבוב (90 מעלות) נגד כיוון השעון פותח את השורה התחתונה",
+  "שני הלוחות שהופכים לגמרי (חצי סיבוב, 180 מעלות) - אחד מהם בקצה השורה העליונה, והשני אינו מתחתיו אלא נוטה הצידה"
+];
 
-// תבנית ה-12 (משבצות צהובות, רשת 6 שורות x 9 עמודות). 1 = צהוב.
+// טקסטים להוראות (פופ-אפ)
+const INSTR_PLAY = "לפניכם לוח קוביות. עליכם לצבוע את הקוביות בלוח על פי הכללים בדיוק. שימו לב! לכל אחד מכם יש לוח אחר, והכללים של כל אחד מכם מופיעים אצל השני. עליכם לדבר ולשתף פעולה ביניכם, ולהעביר ביניכם את כללי צביעת הקוביות על-ידי הקראה ודיבור. לצביעת קוביה יש ללחוץ עליה, כל לחיצה מחליפה את הצבע.";
+const INSTR_S4 = "עליכם לשתף פעולה ולסדר את הלוחות שפתרתם בלוח משותף. הכללים לסידור הלוח מופיעים מתחת הלוחות שאספתם. כדי למקם לוח בלוח המשותף יש ללחוץ ולסמן אותו ואז ללחוץ על המיקום הרצוי. כל לחיצה נוספת על לוח אחרי שהתמקם, תסובב אותו ב-90 מעלות ימינה (לחיצה חוזרת ממשיכה לסובב ימינה: רבע, חצי, שלושת-רבעי, וחזרה להתחלה - כך אפשר להגיע לכל מצב סיבוב). ברגע שתסדרו את הלוחות במיקומם ובמצבם הנכון, תוכלו לזהות בעצמכם קוד - סימן מוכר - שנוצר מהצבעים על הלוחות. כשתזהו אותו, הזינו אותו בשדה למטה ולחצו על בדיקת הקוד. אם אינכם מזהים, בדקו שוב את סידור הלוחות.";
+
+// תבנית ה-12 המתוקנת (משבצות צהובות, רשת 6 שורות x 9 עמודות). 1 = צהוב.
 const TARGET_12 = [
   [1,1,0,0,0,1,1,1,0],
   [0,1,0,0,0,0,0,1,0],
+  [0,1,0,0,0,0,0,1,0],
   [0,1,0,0,0,1,1,1,0],
-  [0,1,0,0,0,1,0,0,0],
   [0,1,0,0,0,1,0,0,0],
   [1,1,1,0,0,1,1,1,0],
 ];
@@ -481,8 +522,9 @@ function render(){
 
 function renderPlay(){
   const stage = remote.stage;
-  $("stage-pill").textContent = `שלב ${stage} מתוך 4`;
-  $("who-name").textContent = NAME[myRole];
+  const partnerRole = myRole==="yuval"?"partner":"yuval";
+  $("play-name").textContent = NAME[myRole];
+  $("board-title").textContent = `לוח #${stage}`;
   const board = remote.boards?.[myRole] || emptyBoard();
   const locked = remote.status?.[myRole]==="correct";
 
@@ -503,29 +545,18 @@ function renderPlay(){
   // הודעת סטטוס
   const st = remote.status||{};
   if(locked && !(st.yuval==="correct"&&st.partner==="correct")){
-    setStatusMsg("wait","ממתינים לשותף... ⏳");
+    setStatusMsg("wait",`ממתינים ל${NAME[partnerRole]}`);
   }else if(!locked){
-    if($("status-msg").dataset.kind!=="err") setStatusMsg("", filled?"לחצו 'סיימתי' לבדיקה":"צבעו את כל 9 המשבצות");
+    if($("status-msg").dataset.kind!=="err") setStatusMsg("", filled?"לחצו 'סיימתי' לבדיקה":"");
   }
 
-  // רמזים: על המסך שלי - הרמזים לפתרון הלוח של השותף (אני מקריא להם) + הגישור שלי
-  const partnerRole = myRole==="yuval"?"partner":"yuval";
-  const partnerClues = STAGES[stage][partnerRole].selfClues;
-  const myBridge = STAGES[stage][myRole].bridge;
+  // הכללים לפתרון הלוח של השותף (אני מקריא להם). כלל הגישור הוא אחד מהכללים הממוספרים.
+  const pc = STAGES[stage][partnerRole];
+  const bridgeText = `המשבצת "${CELL[pc.bridge.my]}" שלי זהה בצבעה למשבצת "${CELL[pc.bridge.partner]}" בלוח של השותף`;
+  const rules = [...pc.selfClues, bridgeText];
   $("clue-card").innerHTML = `
-    <h3>🔑 חדר הבקרה שלכם</h3>
-    <div class="clue-block">
-      <div class="clue-label">📢 הקריאו ל${NAME[partnerRole]} - אלה הרמזים ללוח שלו/ה:</div>
-      <ul class="clues">${partnerClues.map(c=>`<li>${c}</li>`).join("")}</ul>
-    </div>
-    <div class="clue-block">
-      <div class="bridge">
-        <div class="b-title">🔗 הגישור שלכם</div>
-        המשבצת "${CELL[myBridge.my]}" בלוח שלכם זהה בצבע למשבצת "${CELL[myBridge.partner]}" בלוח של ${NAME[partnerRole]}.
-        <div class="hint-line">שאלו את ${NAME[partnerRole]} מה הצבע של אותה משבצת אצלו/ה - בלי זה תישאר משבצת אחת לא פתורה.</div>
-      </div>
-    </div>
-    <div class="hint-line">💬 הרמזים לפתרון הלוח שלכם נמצאים אצל ${NAME[partnerRole]}. דברו ביניכם!</div>
+    <h3 class="panel-title">הכללים ללוח של ${NAME[partnerRole]}</h3>
+    <ol class="clues-num">${rules.map(c=>`<li>${c}</li>`).join("")}</ol>
   `;
 
   renderGallery();
@@ -557,15 +588,14 @@ function solvedArrayOf(b){
 }
 
 function renderS4(){
-  $("who-name-4").textContent = NAME[myRole];
+  $("s4-name").textContent = NAME[myRole];
   const arr = remote.arrangement?.boards || buildInitialArrangement().boards;
 
-  // משבצות
+  // משבצות (מוצמדות, ללא טקסט)
   const slotsEl = $("slots"); slotsEl.innerHTML="";
   for(let s=0;s<6;s++){
     const slot=document.createElement("div");
     slot.className="slot"; slot.dataset.slot=s;
-    slot.innerHTML=`<span class="slot-num">${s<3?"שורה עליונה":"שורה תחתונה"} ${ (s%3)+1 }</span>`;
     const bid = Object.keys(arr).find(k=>arr[k].slot===s);
     if(bid){
       slot.classList.add("filled");
@@ -574,12 +604,11 @@ function renderS4(){
       const placed=document.createElement("div");
       placed.className="placed";
       placed.innerHTML = colors.map(c=>`<i class="${c==="none"?"":c}"></i>`).join("");
-      placed.addEventListener("click", ()=>rotateBoard(bid));
+      placed.addEventListener("click", ()=>rotateBoard(bid)); // לחיצה על לוח מסובבת 90 ימינה
       const ctrl=document.createElement("div");
       ctrl.className="placed-ctrl";
-      ctrl.innerHTML=`<button class="ctrl-b" title="סובב">⟳</button><button class="ctrl-b" title="החזר למאגר">✕</button>`;
-      ctrl.children[0].addEventListener("click", e=>{e.stopPropagation();rotateBoard(bid);});
-      ctrl.children[1].addEventListener("click", e=>{e.stopPropagation();removeBoard(bid);});
+      ctrl.innerHTML=`<button class="ctrl-b" title="החזר למאגר">✕</button>`;
+      ctrl.children[0].addEventListener("click", e=>{e.stopPropagation();removeBoard(bid);});
       slot.appendChild(placed); slot.appendChild(ctrl);
     }else{
       slot.addEventListener("click", ()=>placeSelected(s));
@@ -587,7 +616,7 @@ function renderS4(){
     slotsEl.appendChild(slot);
   }
 
-  // מאגר
+  // מאגר הלוחות שנאספו
   const trayEl=$("tray"); trayEl.innerHTML="";
   S4_BOARDS.forEach(b=>{
     if(arr[b.id].slot!==-1) return;
@@ -599,16 +628,11 @@ function renderS4(){
     trayEl.appendChild(item);
   });
 
-  // רמזים
+  // כללי סידור - רשימה אחת ממוספרת 1-4
   $("s4-clues").innerHTML = `
-    <div class="card"><h3>🟪 רמזי הסידור של ${NAME.yuval}</h3>
-      <ul class="clues">${S4_CLUES.yuval.map(c=>`<li>${c}</li>`).join("")}</ul></div>
-    <div class="card"><h3>🟦 רמזי הסידור של ${NAME.partner}</h3>
-      <ul class="clues">${S4_CLUES.partner.map(c=>`<li>${c}</li>`).join("")}</ul></div>
-  `;
-  $("shared-clue").textContent = SHARED_CLUE;
-
-  checkArrangement(arr);
+    <div class="card"><h3 class="panel-title">כללי סידור הלוח המשותף</h3>
+      <ol class="clues-num">${S4_RULES.map(c=>`<li>${c}</li>`).join("")}</ol></div>`;
+  // אין חשיפה אוטומטית - השחקנים מזהים את הקוד בעצמם ומזינים אותו
 }
 
 async function placeSelected(slot){
@@ -629,23 +653,20 @@ async function removeBoard(bid){
   await set(R("arrangement/boards"), arr);
 }
 
-function checkArrangement(arr){
-  // כל המשבצות מלאות?
-  const placed = Object.values(arr).filter(b=>b.slot!==-1);
-  if(placed.length!==6) return;
-  // בנה רשת צהוב 6x9
-  const grid = Array.from({length:6},()=>Array(9).fill(0));
-  for(const b of S4_BOARDS){
-    const st = arr[b.id]; if(st.slot===-1) return;
-    const colors = applyRot(solvedArrayOf(b), st.rot);
-    const br=Math.floor(st.slot/3)*3, bc=(st.slot%3)*3;
-    for(let i=0;i<9;i++) if(colors[i]==="yellow") grid[br+Math.floor(i/3)][bc+(i%3)]=1;
-  }
-  const ok = grid.every((row,r)=>row.every((v,c)=>v===TARGET_12[r][c]));
-  if(ok && myRole==="yuval" && !remote.status?.success){
-    set(R("status/success"), true);
+/* ===================== בדיקת קוד ידנית (ללא חשיפה אוטומטית) ===================== */
+function checkCode(){
+  const val = ($("code-input").value||"").trim();
+  if(val==="12"){
+    $("code-feedback").textContent="";
+    set(R("status/success"), true); // מסונכרן לשני השחקנים
+  }else{
+    $("code-feedback").textContent="יש לכם טעות. זה לא הקוד. נסו להסתכל שוב על הלוחות או לעבור שוב על הכללים";
   }
 }
+
+/* ===================== פופ-אפ הוראות ===================== */
+function openModal(text){ $("modal-text").textContent=text; $("modal").classList.remove("hidden"); }
+function closeModal(){ $("modal").classList.add("hidden"); }
 
 /* ===================== ניצחון ===================== */
 function renderWin(){
@@ -695,6 +716,12 @@ async function resetGame(){
 }
 ["reset-play","reset-s4","reset-win"].forEach(id=>$(id).addEventListener("click",resetGame));
 $("done-btn").addEventListener("click", clickDone);
+$("code-btn").addEventListener("click", checkCode);
+$("instr-play").addEventListener("click", ()=>openModal(INSTR_PLAY));
+$("instr-s4").addEventListener("click", ()=>openModal(INSTR_S4));
+$("modal-x").addEventListener("click", closeModal);
+$("modal-close").addEventListener("click", closeModal);
+$("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal(); });
 
 /* ===================== הפעלה ===================== */
 initOpening();
