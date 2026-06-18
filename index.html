@@ -214,6 +214,7 @@
       <button class="name-btn" data-role="partner" id="btn-partner">איתי</button>
     </div>
     <div class="taken-note" id="taken-note"></div>
+    <button class="reset-btn" id="reset-open" style="margin-top:4px">התחלה נקייה (שחרור תפקידים)</button>
   </div>
 
   <!-- PLAY (stages 1-3) -->
@@ -413,19 +414,25 @@ function initOpening(){
 async function claimRole(role){
   if(myRole) return;
   const other = role==="yuval"?"partner":"yuval";
-  const res = await runTransaction(R("roles/"+role), cur => {
-    if(isFreshRole(cur) && cur.id!==clientId) return undefined; // תפוס באמת ע"י אחר -> בטל
-    return { id:clientId, ts:Date.now() };                      // פנוי / ישן / שלי -> תפוס מחדש
-  });
-  if(!res.committed){
-    $("taken-note").textContent = `${NAME[role]} כבר בפנים. בחרו את "${NAME[other]}".`;
-    return;
+  try{
+    const res = await runTransaction(R("roles/"+role), cur => {
+      if(isFreshRole(cur) && cur.id!==clientId) return undefined; // תפוס באמת ע"י אחר -> בטל
+      return { id:clientId, ts:Date.now() };                      // פנוי / ישן / שלי -> תפוס מחדש
+    });
+    if(!res.committed){
+      $("taken-note").textContent = `${NAME[role]} כבר בפנים. בחרו את "${NAME[other]}".`;
+      return;
+    }
+    myRole = role;
+    onDisconnect(R("roles/"+role)).remove(); // שחרור תפקיד אוטומטי בניתוק/ריענון
+    startHeartbeat();
+    subscribe();                 // מתחילים להקשיב מיד
+    await initRoomIfNeeded();     // אם החדר ריק - מאתחל; ההאזנה תרענן את המסך
+  }catch(err){
+    myRole = null;               // איפוס כדי שאפשר יהיה לנסות שוב
+    if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
+    $("taken-note").textContent = "שגיאת חיבור ל-Firebase. נסו שוב, או לחצו 'התחלה נקייה'.";
   }
-  myRole = role;
-  onDisconnect(R("roles/"+role)).remove(); // שחרור תפקיד אוטומטי בניתוק/ריענון
-  startHeartbeat();
-  await initRoomIfNeeded();
-  subscribe();
 }
 
 function startHeartbeat(){
@@ -722,6 +729,13 @@ $("instr-s4").addEventListener("click", ()=>openModal(INSTR_S4));
 $("modal-x").addEventListener("click", closeModal);
 $("modal-close").addEventListener("click", closeModal);
 $("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal(); });
+$("reset-open").addEventListener("click", async ()=>{
+  if(!confirm("לאפס את החדר ולשחרר את שני התפקידים?")) return;
+  if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
+  myRole=null; lastProcessedStage=0;
+  try{ await remove(R()); $("taken-note").textContent="החדר אופס. בחרו שם."; }
+  catch(e){ $("taken-note").textContent="האיפוס נכשל - בדקו חיבור/הרשאות."; }
+});
 
 /* ===================== הפעלה ===================== */
 initOpening();
