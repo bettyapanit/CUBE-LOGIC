@@ -184,7 +184,7 @@
     border-radius:18px;padding:32px 26px 22px;box-shadow:0 0 44px rgba(0,229,255,0.22)}
   .modal-x{position:absolute;top:10px;inset-inline-end:12px;width:34px;height:34px;border-radius:9px;
     border:1px solid var(--panel-line);background:rgba(3,2,10,0.7);color:#fff;font-size:16px;cursor:pointer}
-  .modal-text{font-size:17px;line-height:1.7;color:var(--ink)}
+  .modal-text{font-size:17px;line-height:1.7;color:var(--ink);white-space:pre-line}
   .modal-close{margin:20px auto 0;font-family:inherit;font-weight:700;font-size:16px;cursor:pointer;color:#03121a;
     padding:11px 30px;border-radius:11px;border:none;background:linear-gradient(180deg,#7df9ff,var(--turq));display:block}
   /* code input (stage 4) */
@@ -201,6 +201,11 @@
   .inter{min-height:72vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
   .inter .msg{font-size:30px;font-weight:800;color:var(--turq);line-height:1.5;max-width:620px;
     text-shadow:0 0 30px rgba(0,229,255,0.25)}
+  .inter-instr-title{font-size:22px;font-weight:800;color:var(--turq);margin-top:22px}
+  .inter-instr-text{font-size:16px;line-height:1.7;color:var(--ink);max-width:640px;margin:10px auto 0;text-align:start}
+  .entry{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:22px;padding:24px}
+  .entry-title{font-size:30px;font-weight:800;color:var(--turq);text-shadow:0 0 26px rgba(0,229,255,0.22)}
+  .entry-text{font-size:18px;line-height:1.8;color:var(--ink);max-width:660px;white-space:pre-line;text-align:start}
 </style>
 </head>
 <body>
@@ -265,9 +270,18 @@
     <div class="footer"><button class="reset-btn" id="reset-s4">איפוס משחק</button></div>
   </div>
 
+  <!-- ENTRY INSTRUCTIONS -->
+  <div id="screen-entry" class="hidden">
+    <div class="entry">
+      <h2 class="entry-title">הוראות המשחק:</h2>
+      <div class="entry-text" id="entry-text"></div>
+      <button class="done-btn" id="entry-continue">המשך</button>
+    </div>
+  </div>
+
   <!-- INTER-STAGE -->
   <div id="screen-inter" class="hidden">
-    <div class="inter"><div class="msg" id="inter-text"></div></div>
+    <div class="inter"><div id="inter-box"></div></div>
   </div>
 
   <!-- SUCCESS -->
@@ -337,13 +351,13 @@ const S4_RULES = [
   "לוח יובל #1 מסובב 90 מעלות ימינה (רבע סיבוב עם כיוון השעון) ונמצא באותה שורה עם לוח איתי #1.",
   "לוח יובל #2 מסובב ב-180 מעלות (חצי סיבוב) וממוקם בפינה, מעל ללוח איתי #2.",
   "לוח יובל #1 ולוח יובל #2 באותה שורה.",
-  "לוח איתי #3 מסובב ב-90 מעלות שמאלה (רבע סיבוב נגד כיוון השעון).",
+  "לוח איתי #3 מסובב ב-90 מעלות שמאלה (רבע סיבוב נגד כיוון השעון) וחייב להיות צמוד לקצה השמאלי של הלוח המשותף.",
   "לוח איתי #1 צמוד ללוח יובל #3."
 ];
 
-// טקסטים להוראות (פופ-אפ)
-const INSTR_PLAY = "לפניכם לוח קוביות. עליכם לצבוע את הקוביות בלוח על פי הכללים בדיוק. שימו לב! לכל אחד מכם יש לוח אחר, והכללים של כל אחד מכם מופיעים אצל השני. עליכם לדבר ולשתף פעולה ביניכם, ולהעביר ביניכם את כללי צביעת הקוביות על-ידי הקראה ודיבור. לצביעת קוביה יש ללחוץ עליה, כל לחיצה מחליפה את הצבע.";
-const INSTR_S4 = "עליכם לשתף פעולה ולסדר את הלוחות שפתרתם בלוח משותף. הכללים לסידור הלוח מופיעים מתחת הלוחות שאספתם. כדי למקם לוח בלוח המשותף יש ללחוץ ולסמן אותו ואז ללחוץ על המיקום הרצוי. כל לחיצה נוספת על לוח אחרי שהתמקם תסובב אותו ב-90 מעלות (רבע סיבוב) עם כיוון השעון (לחיצות חוזרות ממשיכות לסובב עד שחוזרים להתחלה). ברגע שתסדרו את הלוחות במיקומם ובמצבם הנכון, תוכלו לזהות בעצמכם קוד - סימן מוכר - שנוצר מהצבעים. כשתזהו אותו, הזינו אותו בשדה למטה ולחצו על בדיקת הקוד. אם אינכם מזהים, בדקו שוב את סידור הלוחות.";
+// טקסטים להוראות (פופ-אפ + מסך הוראות פתיחה)
+const INSTR_PLAY = "יובל ואיתי, ברוכים הבאים!\nשניכם נכנסתם לאותו משחק, כל אחד למסך שלו. לכל אחד מכם יופיע מיד על המסך לוח משבצות 3X3.\nכל אחד מכם צריך לצבוע את המשבצות בלוח שלו בכחול, אדום או צהוב - בדיוק על פי הכללים שמופיעים על המסך. שימו לב! לכל אחד מכם יש לוח אחר, והכללים של כל אחד מכם מופיעים אצל השני.\nעליכם לדבר ולשתף פעולה ביניכם, להקריא אחד לשני את כללי צביעת הקוביות ולפצח את הלוחות יחד בשיתוף פעולה. לצביעת קוביה יש ללחוץ עליה, כל לחיצה מחליפה את הצבע במחזוריות.\nבהצלחה!";
+const INSTR_S4 = "בשלב הרביעי עליכם לשתף פעולה ולסדר את הלוחות שפתרתם בלוח משותף. הכללים לסידור הלוח מופיעים לשניכם על המסך מתחת הלוחות שאספתם. כדי למקם לוח שלכם בלוח המשותף יש ללחוץ ולסמן אותו ואז ללחוץ על המיקום הרצוי. כל לחיצה נוספת על לוח אחרי שמיקמתם אותו תסובב אותו ב-90 מעלות ימינה (רבע סיבוב עם כיוון השעון). שימו לב! כל לחיצה מסובבת רבע סיבוב לאותו הכיוון, כך שלחיצות חוזרות ממשיכות לסובב עד שחוזרים להתחלה. ברגע שתסדרו את הלוחות במיקומם ובמצבם הנכון, תוכלו לגלות קוד. כשתגלו את הקוד, הזינו אותו בשדה למטה ולחצו על בדיקת הקוד. אם אינכם מצליחים לגלות את הקוד, בדקו שוב את סידור הלוחות אל מול הכללים. בהצלחה!";
 
 // תבנית ה-12 המתוקנת (משבצות צהובות, רשת 6 שורות x 9 עמודות). 1 = צהוב.
 const TARGET_12 = [
@@ -384,6 +398,7 @@ let hbTimer = null;
 let lastStage = 0;          // השלב האחרון שהוצג (למסך ביניים)
 let transitioning = false;  // בזמן מסך הביניים בין שלבים
 let playStageShown = 0;     // לניקוי הערת שגיאה במעבר שלב
+let entryGate = false;      // מסך הוראות הפתיחה לפני לוח #1
 
 const STALE_MS = 15000;     // תפקיד נחשב פעיל רק אם הסימן החי עודכן ב-15 השניות האחרונות
 const HB_MS = 5000;         // קצב הסימן החי
@@ -398,7 +413,7 @@ try{ localStorage.setItem("cube_cid", clientId); }catch(e){}
 function isFreshRole(v){ return v && typeof v==="object" && v.ts && (Date.now()-v.ts < STALE_MS); }
 
 const $ = id => document.getElementById(id);
-const screens = ["loading","open","play","s4","win","inter"];
+const screens = ["loading","open","entry","play","s4","win","inter"];
 function show(name){ screens.forEach(s=>$("screen-"+s).classList.toggle("hidden", s!==name)); }
 
 /* ===================== מסך פתיחה ===================== */
@@ -425,6 +440,9 @@ async function claimRole(role){
     myRole = role;
     onDisconnect(R("roles/"+role)).remove(); // שחרור תפקיד אוטומטי בניתוק/ריענון
     startHeartbeat();
+    entryGate = true;
+    $("entry-text").textContent = INSTR_PLAY;
+    show("entry");
     subscribe();                 // מתחילים להקשיב מיד
     await initRoomIfNeeded();     // אם החדר ריק - מאתחל; ההאזנה תרענן את המסך
   }catch(err){
@@ -521,6 +539,7 @@ function buildInitialArrangement(){
 /* ===================== ציור מסכים ===================== */
 function render(){
   if(!remote){ return; }
+  if(entryGate) return;                       // ממתינים לסגירת מסך ההוראות
   if(remote.status?.success){ show("win"); renderWin(); lastStage=remote.stage||lastStage; return; }
   const stage = remote.stage;
   if(stage==null) return;
@@ -538,9 +557,16 @@ function render(){
 
 function showInterstitial(from, to){
   transitioning = true;
-  $("inter-text").textContent = `כל הכבוד, הצלחתם לפתור את שלב ${from}. ממשיכים לשלב ${to}. התחילו בקריאת ההוראות החדשות.`;
+  let html = `<div class="msg">כל הכבוד, הצלחתם לפתור את שלב ${from}. ממשיכים לשלב ${to}.</div>`;
+  let dur = 5000;
+  if(to===4){
+    html += `<div class="inter-instr-title">הוראות לשלב 4:</div><div class="inter-instr-text"></div>`;
+    dur = 7000;
+  }
+  $("inter-box").innerHTML = html;
+  if(to===4) $("inter-box").querySelector(".inter-instr-text").textContent = INSTR_S4;
   show("inter");
-  setTimeout(()=>{ transitioning=false; render(); }, 7000);
+  setTimeout(()=>{ transitioning=false; render(); }, dur);
 }
 
 function renderPlay(){
@@ -746,10 +772,11 @@ $("instr-s4").addEventListener("click", ()=>openModal(INSTR_S4));
 $("modal-x").addEventListener("click", closeModal);
 $("modal-close").addEventListener("click", closeModal);
 $("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal(); });
+$("entry-continue").addEventListener("click", ()=>{ entryGate=false; render(); });
 $("reset-open").addEventListener("click", async ()=>{
   if(!confirm("לאפס את החדר ולשחרר את שני התפקידים?")) return;
   if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
-  myRole=null; lastProcessedStage=0; lastStage=0; transitioning=false; playStageShown=0;
+  myRole=null; lastProcessedStage=0; lastStage=0; transitioning=false; playStageShown=0; entryGate=false;
   try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
   try{ await remove(R()); $("taken-note").textContent="החדר אופס. בחרו שם."; }
   catch(e){ $("taken-note").textContent="האיפוס נכשל - בדקו חיבור/הרשאות."; }
