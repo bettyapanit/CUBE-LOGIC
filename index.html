@@ -144,7 +144,7 @@
   .tray-item{position:relative;cursor:pointer;border-radius:11px;padding:8px;
     background:var(--panel);border:2px solid transparent;transition:border-color .12s,transform .12s}
   .tray-item:hover{transform:translateY(-2px)}
-  .tray-item.sel{border-color:var(--turq);box-shadow:0 0 22px rgba(0,229,255,0.35)}
+  .tray-item.sel{outline:2px solid var(--turq);outline-offset:2px;box-shadow:0 0 22px rgba(0,229,255,0.45)}
   .tray-item .lbl{font-size:11px;text-align:center;color:var(--ink-dim);margin-top:5px;font-weight:600}
   .tray-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:66px;direction:ltr}
   .tray-mini i{aspect-ratio:1/1;border-radius:3px;background:var(--c-none)}
@@ -198,6 +198,9 @@
   .code-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #0a6b78}
   .code-feedback{margin-top:12px;font-weight:600;font-size:16px;color:#ff8aa0;min-height:22px;line-height:1.5}
   .big-congrats{font-size:30px;font-weight:900;color:var(--turq);line-height:1.4;max-width:560px}
+  .inter{min-height:72vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .inter .msg{font-size:30px;font-weight:800;color:var(--turq);line-height:1.5;max-width:620px;
+    text-shadow:0 0 30px rgba(0,229,255,0.25)}
 </style>
 </head>
 <body>
@@ -214,7 +217,7 @@
       <button class="name-btn" data-role="partner" id="btn-partner">איתי</button>
     </div>
     <div class="taken-note" id="taken-note"></div>
-    <button class="reset-btn" id="reset-open" style="margin-top:4px">התחלה נקייה (שחרור תפקידים)</button>
+    <button class="reset-btn" id="reset-open" style="margin-top:4px">איפוס</button>
   </div>
 
   <!-- PLAY (stages 1-3) -->
@@ -262,6 +265,11 @@
     <div class="footer"><button class="reset-btn" id="reset-s4">איפוס משחק</button></div>
   </div>
 
+  <!-- INTER-STAGE -->
+  <div id="screen-inter" class="hidden">
+    <div class="inter"><div class="msg" id="inter-text"></div></div>
+  </div>
+
   <!-- SUCCESS -->
   <div id="screen-win" class="hidden">
     <div class="success">
@@ -292,54 +300,48 @@ const ROOM = "cube-mission";
 const NAME = { yuval:"יובל", partner:"איתי" };
 const CELL = ["שמאל-עליון","אמצע-עליון","ימין-עליון","שמאל-אמצע","מרכז","ימין-אמצע","שמאל-תחתון","אמצע-תחתון","ימין-תחתון"];
 
-// raw = מה שכל שחקן בונה בשלבים 1-3 ; selfClues = הרמזים לפתרון הלוח (מוצגים אצל השותף) ; bridge = הגישור (מנקודת מבט בעל הלוח)
+// raw = מה שכל שחקן בונה בשלבים 1-3 ; clues = רשימת הכללים המלאה (הגישור מובלע ככלל אחרון, מנוסח עם שם השותף)
 const STAGES = {
   1:{
     yuval:{ raw:["red","blue","red","yellow","yellow","yellow","yellow","red","blue"],
-      selfClues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-התחתונה צהובה","הפינה הימנית-התחתונה כחולה","אין שתי משבצות אדומות צמודות זו לזו","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים"],
-      bridge:{my:1,partner:4} },
+      clues:["הפינה השמאלית-התחתונה צהובה","הפינה הימנית-התחתונה כחולה","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים","יש בדיוק 3 משבצות אדומות, ואף אחת מהן אינה צמודה לאחרת","יש יותר משבצות צהובות מאשר אדומות","המשבצת העליונה-האמצעית זהה בצבעה למשבצת המרכזית אצל איתי"] },
     partner:{ raw:["red","blue","yellow","red","blue","blue","red","blue","blue"],
-      selfClues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה צהובה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה מוקפת רק בכחול מכל הצדדים"],
-      bridge:{my:8,partner:8} }
+      clues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה צהובה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה מוקפת רק בכחול מכל הצדדים","יש יותר משבצות כחולות מאשר אדומות","הפינה הימנית-התחתונה זהה בצבעה לפינה הימנית-התחתונה אצל יובל"] }
   },
   2:{
     yuval:{ raw:["red","yellow","blue","red","yellow","blue","red","yellow","yellow"],
-      selfClues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת"],
-      bridge:{my:8,partner:0} },
+      clues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","הפינה הימנית-התחתונה זהה בצבעה לפינה השמאלית-העליונה אצל איתי"] },
     partner:{ raw:["yellow","yellow","blue","red","red","red","yellow","yellow","blue"],
-      selfClues:["יש בדיוק 4 משבצות צהובות","הפינה הימנית-העליונה כחולה","הפינה הימנית-התחתונה כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים"],
-      bridge:{my:3,partner:0} }
+      clues:["יש בדיוק 4 משבצות צהובות","הפינה הימנית-העליונה כחולה","הפינה הימנית-התחתונה כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים","יש יותר משבצות צהובות מאשר אדומות","המשבצת השמאלית-האמצעית זהה בצבעה לפינה השמאלית-העליונה אצל יובל"] }
   },
   3:{
     yuval:{ raw:["yellow","red","blue","yellow","red","blue","yellow","red","red"],
-      selfClues:["יש בדיוק 3 משבצות צהובות","הפינה השמאלית-העליונה צהובה","הפינה הימנית-העליונה כחולה","אף משבצת צהובה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת כחולה גובלת בדיוק ב-1 צבעים אחרים"],
-      bridge:{my:8,partner:2} },
+      clues:["יש בדיוק 3 משבצות צהובות","הפינה השמאלית-העליונה צהובה","הפינה הימנית-העליונה כחולה","אף משבצת צהובה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת כחולה גובלת בדיוק ב-1 צבעים אחרים","הפינה הימנית-התחתונה זהה בצבעה לפינה הימנית-העליונה אצל איתי"] },
     partner:{ raw:["yellow","red","red","yellow","yellow","yellow","yellow","blue","blue"],
-      selfClues:["יש בדיוק 2 משבצות אדומות","הפינה הימנית-העליונה אדומה","הפינה הימנית-התחתונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת"],
-      bridge:{my:6,partner:0} }
+      clues:["יש בדיוק 2 משבצות אדומות","הפינה הימנית-העליונה אדומה","הפינה הימנית-התחתונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","הפינה השמאלית-התחתונה זהה בצבעה לפינה השמאלית-העליונה אצל יובל"] }
   }
 };
 
-// שלב 4: כל לוח, מי בנה אותו ובאיזה שלב, וכינוי
+// שלב 4: כל לוח, מי בנה אותו, באיזה שלב, כינוי, וצבע מסגרת מזהה (יובל=סגול, איתי=טורקיז)
 const S4_BOARDS = [
-  { id:"A", owner:"yuval",   stage:1, label:"יובל לוח #1" },
-  { id:"C", owner:"yuval",   stage:2, label:"יובל לוח #2" },
-  { id:"E", owner:"yuval",   stage:3, label:"יובל לוח #3" },
-  { id:"B", owner:"partner", stage:1, label:"איתי לוח #1" },
-  { id:"F", owner:"partner", stage:2, label:"איתי לוח #2" },
-  { id:"D", owner:"partner", stage:3, label:"איתי לוח #3" },
+  { id:"A", owner:"yuval",   stage:1, label:"יובל לוח #1", border:"#c79bf2" },
+  { id:"C", owner:"yuval",   stage:2, label:"יובל לוח #2", border:"#9d4edd" },
+  { id:"E", owner:"yuval",   stage:3, label:"יובל לוח #3", border:"#6a1b9a" },
+  { id:"B", owner:"partner", stage:1, label:"איתי לוח #1", border:"#7df9ff" },
+  { id:"F", owner:"partner", stage:2, label:"איתי לוח #2", border:"#00bcd4" },
+  { id:"D", owner:"partner", stage:3, label:"איתי לוח #3", border:"#00838f" },
 ];
-// כללי הסידור (מרומזים, ממוספרים 1-4 ברצף)
+// כללי הסידור (אילוצים יחסיים, ממוספרים 1-4)
 const S4_RULES = [
-  "הלוח היחיד שמסובב רבע סיבוב (90 מעלות) עם כיוון השעון פותח את השורה העליונה (הקצה שלה)",
-  "שני הלוחות שלא זזים כלל (ללא סיבוב) - אחד באמצע השורה העליונה, השני בקצה השורה התחתונה",
-  "הלוח שמסובב רבע סיבוב (90 מעלות) נגד כיוון השעון פותח את השורה התחתונה",
-  "שני הלוחות שהופכים לגמרי (חצי סיבוב, 180 מעלות) - אחד מהם בקצה השורה העליונה, והשני אינו מתחתיו אלא נוטה הצידה"
+  "יובל לוח #3 אינו ממוקם באף פינה, והוא צמוד לאיתי לוח #1",
+  "יובל לוח #1 ואיתי לוח #1 באותה שורה",
+  "יובל לוח #2 צמוד לאיתי לוח #2",
+  "יובל לוח #1 ויובל לוח #2 באותה שורה"
 ];
 
 // טקסטים להוראות (פופ-אפ)
 const INSTR_PLAY = "לפניכם לוח קוביות. עליכם לצבוע את הקוביות בלוח על פי הכללים בדיוק. שימו לב! לכל אחד מכם יש לוח אחר, והכללים של כל אחד מכם מופיעים אצל השני. עליכם לדבר ולשתף פעולה ביניכם, ולהעביר ביניכם את כללי צביעת הקוביות על-ידי הקראה ודיבור. לצביעת קוביה יש ללחוץ עליה, כל לחיצה מחליפה את הצבע.";
-const INSTR_S4 = "עליכם לשתף פעולה ולסדר את הלוחות שפתרתם בלוח משותף. הכללים לסידור הלוח מופיעים מתחת הלוחות שאספתם. כדי למקם לוח בלוח המשותף יש ללחוץ ולסמן אותו ואז ללחוץ על המיקום הרצוי. כל לחיצה נוספת על לוח אחרי שהתמקם, תסובב אותו ב-90 מעלות ימינה (לחיצה חוזרת ממשיכה לסובב ימינה: רבע, חצי, שלושת-רבעי, וחזרה להתחלה - כך אפשר להגיע לכל מצב סיבוב). ברגע שתסדרו את הלוחות במיקומם ובמצבם הנכון, תוכלו לזהות בעצמכם קוד - סימן מוכר - שנוצר מהצבעים על הלוחות. כשתזהו אותו, הזינו אותו בשדה למטה ולחצו על בדיקת הקוד. אם אינכם מזהים, בדקו שוב את סידור הלוחות.";
+const INSTR_S4 = "עליכם לשתף פעולה ולסדר את הלוחות שפתרתם בלוח משותף. הכללים לסידור הלוח מופיעים מתחת הלוחות שאספתם. כדי למקם לוח בלוח המשותף יש ללחוץ ולסמן אותו ואז ללחוץ על המיקום הרצוי. כל לחיצה נוספת על לוח אחרי שהתמקם תסובב אותו ב-90 מעלות (רבע סיבוב) עם כיוון השעון (לחיצות חוזרות ממשיכות לסובב עד שחוזרים להתחלה). ברגע שתסדרו את הלוחות במיקומם ובמצבם הנכון, תוכלו לזהות בעצמכם קוד - סימן מוכר - שנוצר מהצבעים. כשתזהו אותו, הזינו אותו בשדה למטה ולחצו על בדיקת הקוד. אם אינכם מזהים, בדקו שוב את סידור הלוחות.";
 
 // תבנית ה-12 המתוקנת (משבצות צהובות, רשת 6 שורות x 9 עמודות). 1 = צהוב.
 const TARGET_12 = [
@@ -377,11 +379,18 @@ let remote = null;          // צילום מצב מ-Firebase
 let lastProcessedStage = 0; // למניעת מעבר שלב כפול
 let selectedTray = null;    // שלב 4 - לוח שנבחר מהמאגר
 let hbTimer = null;
+let lastStage = 0;          // השלב האחרון שהוצג (למסך ביניים)
+let transitioning = false;  // בזמן מסך הביניים בין שלבים
+let playStageShown = 0;     // לניקוי הערת שגיאה במעבר שלב
 
 const STALE_MS = 15000;     // תפקיד נחשב פעיל רק אם הסימן החי עודכן ב-15 השניות האחרונות
 const HB_MS = 5000;         // קצב הסימן החי
 
-// מזהה ייחודי ללשונית - שורד ריענון (sessionStorage) אך נפרד בין לשוניות/מכשירים
+// איפוס אוטומטי בכל טעינה - ניקוי cache מקומי (כל כניסה מתחילה נקייה)
+try{ localStorage.clear(); }catch(e){}
+try{ sessionStorage.clear(); }catch(e){}
+
+// מזהה ייחודי ללשונית
 let clientId;
 try{
   clientId = sessionStorage.getItem("cl_id");
@@ -391,7 +400,7 @@ try{
 function isFreshRole(v){ return v && typeof v==="object" && v.ts && (Date.now()-v.ts < STALE_MS); }
 
 const $ = id => document.getElementById(id);
-const screens = ["loading","open","play","s4","win"];
+const screens = ["loading","open","play","s4","win","inter"];
 function show(name){ screens.forEach(s=>$("screen-"+s).classList.toggle("hidden", s!==name)); }
 
 /* ===================== מסך פתיחה ===================== */
@@ -469,6 +478,7 @@ const CYCLE = { none:"red", red:"blue", blue:"yellow", yellow:"none" };
 async function paintCell(idx){
   if(!remote || remote.stage>3) return;
   if(remote.status?.[myRole]==="correct") return; // נעול אחרי תשובה נכונה
+  if($("status-msg").dataset.kind==="err") setStatusMsg("",""); // הערת השגיאה נעלמת בכל שינוי משבצת
   const board = (remote.boards?.[myRole] || emptyBoard()).slice();
   board[idx] = CYCLE[board[idx]||"none"];
   await set(R("boards/"+myRole), board);
@@ -521,15 +531,32 @@ function buildInitialArrangement(){
 /* ===================== ציור מסכים ===================== */
 function render(){
   if(!remote){ return; }
+  if(remote.status?.success){ show("win"); renderWin(); lastStage=remote.stage||lastStage; return; }
   const stage = remote.stage;
-  if(remote.status?.success){ show("win"); renderWin(); return; }
+  if(stage==null) return;
+  if(transitioning) return;                  // מתעלמים מרינדור בזמן מסך הביניים
+  if(lastStage>=1 && stage>lastStage){       // עברנו שלב -> מסך ביניים 5 שניות
+    const from=lastStage, to=stage;
+    lastStage = stage;                        // מונע הפעלה כפולה
+    showInterstitial(from, to);
+    return;
+  }
+  lastStage = stage;
   if(stage<=3){ show("play"); renderPlay(); }
   else if(stage===4){ show("s4"); renderS4(); }
+}
+
+function showInterstitial(from, to){
+  transitioning = true;
+  $("inter-text").textContent = `כל הכבוד, הצלחתם לפתור את שלב ${from}. ממשיכים לשלב ${to}.`;
+  show("inter");
+  setTimeout(()=>{ transitioning=false; render(); }, 5000);
 }
 
 function renderPlay(){
   const stage = remote.stage;
   const partnerRole = myRole==="yuval"?"partner":"yuval";
+  if(stage!==playStageShown){ if($("status-msg").dataset.kind==="err") setStatusMsg("",""); playStageShown=stage; }
   $("play-name").textContent = NAME[myRole];
   $("board-title").textContent = `לוח #${stage}`;
   const board = remote.boards?.[myRole] || emptyBoard();
@@ -552,18 +579,16 @@ function renderPlay(){
   // הודעת סטטוס
   const st = remote.status||{};
   if(locked && !(st.yuval==="correct"&&st.partner==="correct")){
-    setStatusMsg("wait",`ממתינים ל${NAME[partnerRole]}`);
+    setStatusMsg("ok",`הצלחת, כל הכבוד! עכשיו ממתינים ל${NAME[partnerRole]}`);
   }else if(!locked){
     if($("status-msg").dataset.kind!=="err") setStatusMsg("", filled?"לחצו 'סיימתי' לבדיקה":"");
   }
 
-  // הכללים לפתרון הלוח של השותף (אני מקריא להם). כלל הגישור הוא אחד מהכללים הממוספרים.
+  // הכללים לפתרון הלוח של השותף (אני מקריא להם). הגישור מובלע ככלל אחרון ברשימה.
   const pc = STAGES[stage][partnerRole];
-  const bridgeText = `המשבצת "${CELL[pc.bridge.my]}" שלי זהה בצבעה למשבצת "${CELL[pc.bridge.partner]}" בלוח של השותף`;
-  const rules = [...pc.selfClues, bridgeText];
   $("clue-card").innerHTML = `
     <h3 class="panel-title">הכללים ללוח של ${NAME[partnerRole]}</h3>
-    <ol class="clues-num">${rules.map(c=>`<li>${c}</li>`).join("")}</ol>
+    <ol class="clues-num">${pc.clues.map(c=>`<li>${c}</li>`).join("")}</ol>
   `;
 
   renderGallery();
@@ -610,6 +635,7 @@ function renderS4(){
       const colors = applyRot(solvedArrayOf(bMeta), arr[bid].rot);
       const placed=document.createElement("div");
       placed.className="placed";
+      placed.style.boxShadow = "inset 0 0 0 3px "+bMeta.border; // מסגרת מזהה
       placed.innerHTML = colors.map(c=>`<i class="${c==="none"?"":c}"></i>`).join("");
       placed.addEventListener("click", ()=>rotateBoard(bid)); // לחיצה על לוח מסובבת 90 ימינה
       const ctrl=document.createElement("div");
@@ -630,6 +656,7 @@ function renderS4(){
     const colors = solvedArrayOf(b); // במאגר מציגים ללא סיבוב
     const item=document.createElement("div");
     item.className="tray-item"+(selectedTray===b.id?" sel":"");
+    item.style.borderColor = b.border; // מסגרת מזהה (יובל=סגול, איתי=טורקיז)
     item.innerHTML=`<div class="tray-mini">${colors.map(c=>`<i class="${c==="none"?"":c}"></i>`).join("")}</div><div class="lbl">${b.label}</div>`;
     item.addEventListener("click", ()=>{ selectedTray = (selectedTray===b.id?null:b.id); renderS4(); });
     trayEl.appendChild(item);
@@ -712,7 +739,7 @@ function launchConfetti(){
 /* ===================== איפוס ===================== */
 async function resetGame(){
   if(!confirm("לאפס את כל המשחק לשני השחקנים?")) return;
-  lastProcessedStage=0;
+  lastProcessedStage=0; lastStage=1; transitioning=false; playStageShown=0;
   await update(R(), {
     stage:1,
     boards:{ yuval:emptyBoard(), partner:emptyBoard() },
@@ -732,7 +759,8 @@ $("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal()
 $("reset-open").addEventListener("click", async ()=>{
   if(!confirm("לאפס את החדר ולשחרר את שני התפקידים?")) return;
   if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
-  myRole=null; lastProcessedStage=0;
+  myRole=null; lastProcessedStage=0; lastStage=0; transitioning=false; playStageShown=0;
+  try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
   try{ await remove(R()); $("taken-note").textContent="החדר אופס. בחרו שם."; }
   catch(e){ $("taken-note").textContent="האיפוס נכשל - בדקו חיבור/הרשאות."; }
 });
