@@ -557,16 +557,17 @@ function render(){
 
 function showInterstitial(from, to){
   transitioning = true;
-  let html = `<div class="msg">כל הכבוד, הצלחתם לפתור את שלב ${from}. ממשיכים לשלב ${to}.</div>`;
-  let dur = 5000;
-  if(to===4){
-    html += `<div class="inter-instr-title">הוראות לשלב 4:</div><div class="inter-instr-text"></div>`;
-    dur = 7000;
-  }
-  $("inter-box").innerHTML = html;
-  if(to===4) $("inter-box").querySelector(".inter-instr-text").textContent = INSTR_S4;
+  $("inter-box").innerHTML = `<div class="msg">כל הכבוד, הצלחתם לפתור את שלב ${from}. ממשיכים לשלב ${to}.</div>`;
   show("inter");
-  setTimeout(()=>{ transitioning=false; render(); }, dur);
+  if(to===4){
+    const t=document.createElement("div"); t.className="inter-instr-title"; t.textContent="הוראות לשלב 4:";
+    const x=document.createElement("div"); x.className="inter-instr-text"; x.textContent=INSTR_S4;
+    const b=document.createElement("button"); b.className="done-btn"; b.textContent="המשך"; b.style.marginTop="22px";
+    b.addEventListener("click", ()=>{ transitioning=false; render(); });
+    $("inter-box").append(t,x,b);   // ממתינים ללחיצת המשך (בלי טיימר)
+  }else{
+    setTimeout(()=>{ transitioning=false; render(); }, 5000);
+  }
 }
 
 function renderPlay(){
@@ -752,19 +753,18 @@ function launchConfetti(){
   })();
 }
 
-/* ===================== איפוס ===================== */
-async function resetGame(){
-  if(!confirm("לאפס את כל המשחק לשני השחקנים?")) return;
-  lastProcessedStage=0; lastStage=1; transitioning=false; playStageShown=0;
-  await update(R(), {
-    stage:1,
-    boards:{ yuval:emptyBoard(), partner:emptyBoard() },
-    status:{ yuval:"waiting", partner:"waiting" },
-    gallery:null,
-    arrangement:null
-  });
+/* ===================== איפוס מלא (חזרה למסך הכניסה) ===================== */
+async function fullReset(){
+  if(!confirm("לאפס את המשחק ולחזור למסך הכניסה?")) return;
+  if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
+  myRole=null; remote=null;
+  lastProcessedStage=0; lastStage=0; transitioning=false; playStageShown=0; entryGate=false; selectedTray=null;
+  try{ localStorage.clear(); sessionStorage.clear(); localStorage.setItem("cube_cid", clientId); }catch(e){}
+  try{ await remove(R()); }catch(e){}
+  $("taken-note").textContent="";
+  show("open");
 }
-["reset-play","reset-s4","reset-win"].forEach(id=>$(id).addEventListener("click",resetGame));
+["reset-play","reset-s4","reset-win","reset-open"].forEach(id=>$(id).addEventListener("click",fullReset));
 $("done-btn").addEventListener("click", clickDone);
 $("code-btn").addEventListener("click", checkCode);
 $("instr-play").addEventListener("click", ()=>openModal(INSTR_PLAY));
@@ -773,14 +773,6 @@ $("modal-x").addEventListener("click", closeModal);
 $("modal-close").addEventListener("click", closeModal);
 $("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal(); });
 $("entry-continue").addEventListener("click", ()=>{ entryGate=false; render(); });
-$("reset-open").addEventListener("click", async ()=>{
-  if(!confirm("לאפס את החדר ולשחרר את שני התפקידים?")) return;
-  if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
-  myRole=null; lastProcessedStage=0; lastStage=0; transitioning=false; playStageShown=0; entryGate=false;
-  try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
-  try{ await remove(R()); $("taken-note").textContent="החדר אופס. בחרו שם."; }
-  catch(e){ $("taken-note").textContent="האיפוס נכשל - בדקו חיבור/הרשאות."; }
-});
 
 /* ===================== הפעלה ===================== */
 initOpening();
