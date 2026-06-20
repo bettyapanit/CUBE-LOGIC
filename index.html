@@ -131,16 +131,16 @@
   .slot{aspect-ratio:1/1;border:1px solid rgba(0,229,255,0.18);
     background:rgba(0,229,255,0.03);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
   .slot.filled{border-color:rgba(0,229,255,0.3);cursor:default}
-  .placed{width:100%;height:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;cursor:pointer;position:relative;touch-action:none}
+  .placed{width:100%;height:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;cursor:pointer;position:relative;touch-action:none;container-type:size;overflow:hidden}
   .placed i{border-radius:4px;background:var(--c-none);
     box-shadow:inset 0 2px 3px rgba(255,255,255,0.18),inset 0 -3px 4px rgba(0,0,0,0.25)}
   .placed i.red{background:var(--c-red)}.placed i.blue{background:var(--c-blue)}.placed i.yellow{background:var(--c-yellow)}
   .board-letter{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    font-weight:900;color:rgba(255,255,255,0.62);text-shadow:0 2px 8px rgba(0,0,0,0.7);
+    font-weight:900;color:rgba(255,255,255,0.30);text-shadow:0 1px 3px rgba(0,0,0,0.28);
     pointer-events:none;z-index:3;line-height:1}
-  .placed .board-letter{font-size:min(64px,11vw)}
+  .placed .board-letter{font-size:min(120px,20vw);font-size:118cqmin}
   .tray-mini-wrap{position:relative}
-  .tray-mini-wrap .board-letter{font-size:34px}
+  .tray-mini-wrap .board-letter{font-size:50px}
   .placed-ctrl{position:absolute;top:3px;inset-inline-end:4px;display:flex;gap:4px;direction:rtl;z-index:2}
   .ctrl-b{width:26px;height:26px;border-radius:7px;border:1px solid var(--panel-line);
     background:rgba(3,2,10,0.85);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
@@ -299,6 +299,15 @@
     </div>
   </div>
 
+  <!-- STAGE 4 INSTRUCTIONS -->
+  <div id="screen-s4instr" class="hidden">
+    <div class="entry">
+      <h2 class="entry-title">הוראות לשלב 4:</h2>
+      <div class="entry-text" id="s4instr-text"></div>
+      <button class="done-btn" id="s4instr-continue">המשך</button>
+    </div>
+  </div>
+
   <!-- INTER-STAGE -->
   <div id="screen-inter" class="hidden">
     <div class="inter"><div id="inter-box"></div></div>
@@ -435,7 +444,7 @@ try{ localStorage.setItem("cube_cid", clientId); }catch(e){}
 function isFreshRole(v){ return v && typeof v==="object" && v.ts && (Date.now()-v.ts < STALE_MS); }
 
 const $ = id => document.getElementById(id);
-const screens = ["loading","open","entry","play","s4","win","inter"];
+const screens = ["loading","open","entry","s4instr","play","s4","win","inter"];
 function show(name){ screens.forEach(s=>$("screen-"+s).classList.toggle("hidden", s!==name)); }
 
 /* ===================== מסך פתיחה ===================== */
@@ -581,15 +590,14 @@ function showInterstitial(from, to){
   transitioning = true;
   $("inter-box").innerHTML = `<div class="msg">כל הכבוד, הצלחתם לפתור את שלב ${from}. ממשיכים לשלב ${to}.</div>`;
   show("inter");
-  if(to===4){
-    const t=document.createElement("div"); t.className="inter-instr-title"; t.textContent="הוראות לשלב 4:";
-    const x=document.createElement("div"); x.className="inter-instr-text"; x.textContent=INSTR_S4;
-    const b=document.createElement("button"); b.className="done-btn"; b.textContent="המשך"; b.style.marginTop="22px";
-    b.addEventListener("click", ()=>{ transitioning=false; render(); });
-    $("inter-box").append(t,x,b);   // ממתינים ללחיצת המשך (בלי טיימר)
-  }else{
-    setTimeout(()=>{ transitioning=false; render(); }, 5000);
-  }
+  setTimeout(()=>{
+    if(to===4){
+      $("s4instr-text").textContent = INSTR_S4;  // מסך הוראות נפרד עם כפתור המשך (transitioning נשאר true)
+      show("s4instr");
+    }else{
+      transitioning=false; render();
+    }
+  }, 5000);
 }
 
 function renderPlay(){
@@ -894,6 +902,7 @@ $("modal-x").addEventListener("click", closeModal);
 $("modal-close").addEventListener("click", closeModal);
 $("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal(); });
 $("entry-continue").addEventListener("click", ()=>{ entryGate=false; render(); });
+$("s4instr-continue").addEventListener("click", ()=>{ transitioning=false; render(); });
 
 /* ===================== הפעלה ===================== */
 initOpening();
