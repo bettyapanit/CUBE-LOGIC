@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CUBE LOGIC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#03020a;
+    --turq:#00e5ff;
+    --purple:#580670;
+    --purple-br:#a855f7;
+    --panel:rgba(12,8,28,0.78);
+    --panel-line:rgba(0,229,255,0.22);
+    --c-red:#ff3860;
+    --c-blue:#2e7dff;
+    --c-yellow:#ffd23f;
+    --c-none:rgba(150,162,205,0.30);
+    --ink:#eaf6ff;
+    --ink-dim:#9fb6c9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:'Rubik',sans-serif;
+    background:
+      radial-gradient(1100px 700px at 80% -10%, rgba(88,6,112,0.45), transparent 60%),
+      radial-gradient(900px 600px at 10% 110%, rgba(0,229,255,0.14), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    min-height:100%;
+    overflow-x:hidden;
+  }
+  #app{max-width:1180px;margin:0 auto;padding:18px 16px 60px;min-height:100vh}
+  .hidden{display:none !important}
+
+  /* ===== Header ===== */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .logo{font-weight:900;font-size:30px;letter-spacing:3px;
+    background:linear-gradient(90deg,var(--turq),#bd6bff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 28px rgba(0,229,255,0.25)}
+  .stage-pill{font-weight:700;font-size:14px;color:var(--turq);
+    border:1px solid var(--panel-line);border-radius:999px;padding:6px 14px;
+    background:rgba(0,229,255,0.06)}
+  .who-tag{font-size:13px;color:var(--ink-dim)}
+  .who-tag b{color:#fff}
+
+  /* ===== Opening screen ===== */
+  .opening{min-height:74vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px}
+  .title-row{display:flex;align-items:center;justify-content:center;gap:16px;white-space:nowrap}
+  .title-row .ic{font-size:clamp(26px,7vw,44px);line-height:1;filter:drop-shadow(0 0 14px rgba(0,229,255,0.35))}
+  .opening h1{font-size:clamp(34px,9vw,58px);font-weight:300;letter-spacing:clamp(2px,1vw,6px);white-space:nowrap;
+    background:linear-gradient(90deg,var(--turq),var(--purple-br));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 40px rgba(0,229,255,0.25)}
+  .opening h2{font-size:30px;font-weight:700;margin-top:8px}
+  .choose{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
+  .name-btn{
+    font-family:inherit;cursor:pointer;font-weight:800;font-size:30px;color:var(--turq);
+    padding:26px 54px;border-radius:18px;border:2px solid var(--panel-line);
+    background:linear-gradient(160deg,rgba(120,30,170,0.55),rgba(88,6,112,0.42));
+    box-shadow:0 10px 0 rgba(0,0,0,0.45),inset 0 2px 4px rgba(255,255,255,0.12),0 0 30px rgba(88,6,112,0.28);
+    transition:transform .12s,box-shadow .12s,border-color .12s;min-width:200px}
+  .name-btn:hover{transform:translateY(-3px);border-color:var(--turq);box-shadow:0 13px 0 rgba(0,0,0,0.45),inset 0 2px 4px rgba(255,255,255,0.18),0 0 44px rgba(0,229,255,0.22)}
+  .name-btn:active{transform:translateY(3px);box-shadow:0 5px 0 rgba(0,0,0,0.45),inset 0 2px 4px rgba(255,255,255,0.10)}
+  .name-btn.taken{opacity:.4;cursor:not-allowed;filter:grayscale(.6)}
+  .taken-note{font-size:14px;color:var(--ink-dim);min-height:18px}
+
+  /* ===== Play layout ===== */
+  .play-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:start}
+  @media(max-width:820px){.play-grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--panel-line);border-radius:16px;padding:16px;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.4),0 14px 40px rgba(0,0,0,0.5)}
+  .card h3{font-size:16px;font-weight:700;color:var(--turq);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+  /* ===== Board ===== */
+  .board-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(300px,72vw);direction:ltr}
+  .cell{aspect-ratio:1/1;border-radius:11px;cursor:pointer;background:var(--c-none);
+    border:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 8px 0 rgba(0,0,0,0.6),inset 0 4px 6px rgba(255,255,255,0.30),inset 0 -7px 9px rgba(0,0,0,0.42);
+    transition:transform .08s,box-shadow .08s}
+  .cell:active{transform:translateY(4px);box-shadow:0 3px 0 rgba(0,0,0,0.6),inset 0 4px 6px rgba(255,255,255,0.22)}
+  .cell.red{background:var(--c-red)}
+  .cell.blue{background:var(--c-blue)}
+  .cell.yellow{background:var(--c-yellow)}
+  .cell.locked{cursor:default}
+  .cell.locked:active{transform:none}
+
+  .done-btn{font-family:inherit;font-weight:800;font-size:19px;cursor:pointer;color:#03121a;
+    padding:13px 34px;border-radius:13px;border:none;
+    background:linear-gradient(180deg,#7df9ff,var(--turq));
+    box-shadow:0 7px 0 #0a6b78,0 0 26px rgba(0,229,255,0.35);transition:transform .1s,box-shadow .1s}
+  .done-btn:hover{transform:translateY(-2px)}
+  .done-btn:active{transform:translateY(4px);box-shadow:0 3px 0 #0a6b78}
+  .done-btn:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.4);box-shadow:0 7px 0 #0a6b78}
+  .status-msg{min-height:26px;font-weight:600;font-size:16px;text-align:center}
+  .status-msg.ok{color:#7dffa8}.status-msg.wait{color:var(--turq)}.status-msg.err{color:#ff8aa0}
+
+  /* ===== Clues ===== */
+  .clue-block{margin-bottom:16px}
+  .clue-label{font-size:13px;font-weight:700;color:#ffd23f;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  ul.clues{list-style:none;display:flex;flex-direction:column;gap:7px}
+  ul.clues li{font-size:15px;line-height:1.45;background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:8px 11px;
+    border-inline-start:3px solid rgba(255,210,63,0.6)}
+  .bridge{background:linear-gradient(160deg,rgba(0,229,255,0.10),rgba(88,6,112,0.22));
+    border:1px solid var(--turq);border-radius:11px;padding:12px 13px;font-size:15px;line-height:1.5}
+  .bridge .b-title{font-weight:800;color:var(--turq);margin-bottom:5px}
+  .hint-line{font-size:13px;color:var(--ink-dim);margin-top:6px;line-height:1.5}
+
+  /* ===== Gallery ===== */
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  .gal-col h4{font-size:22px;font-weight:800;text-align:center;margin-bottom:9px;color:var(--purple-br)}
+  .gal-row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;min-height:62px}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:54px;direction:ltr;
+    padding:3px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(255,255,255,0.07)}
+  .mini i{aspect-ratio:1/1;border-radius:2px;background:var(--c-none)}
+  .mini i.red{background:var(--c-red)}.mini i.blue{background:var(--c-blue)}.mini i.yellow{background:var(--c-yellow)}
+
+  /* ===== Stage 4 ===== */
+  .stage4-head{text-align:center;margin-bottom:14px}
+  .stage4-head .t{font-size:24px;font-weight:800}
+  .stage4-head .s{font-size:15px;color:var(--ink-dim);margin-top:5px}
+  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:0;direction:ltr;
+    width:min(560px,94vw);margin:0 auto 18px;border:1px solid var(--panel-line);border-radius:12px;overflow:hidden}
+  .slot{aspect-ratio:1/1;border:1px solid rgba(0,229,255,0.18);
+    background:rgba(0,229,255,0.03);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+  .slot.filled{border-color:rgba(0,229,255,0.3);cursor:default}
+  .placed{width:100%;height:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px;cursor:pointer;position:relative;touch-action:none}
+  .placed i{border-radius:4px;background:var(--c-none);
+    box-shadow:inset 0 2px 3px rgba(255,255,255,0.18),inset 0 -3px 4px rgba(0,0,0,0.25)}
+  .placed i.red{background:var(--c-red)}.placed i.blue{background:var(--c-blue)}.placed i.yellow{background:var(--c-yellow)}
+  .board-letter{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-weight:900;color:rgba(255,255,255,0.62);text-shadow:0 2px 8px rgba(0,0,0,0.7);
+    pointer-events:none;z-index:3;line-height:1}
+  .placed .board-letter{font-size:min(64px,11vw)}
+  .tray-mini-wrap{position:relative}
+  .tray-mini-wrap .board-letter{font-size:34px}
+  .placed-ctrl{position:absolute;top:3px;inset-inline-end:4px;display:flex;gap:4px;direction:rtl;z-index:2}
+  .ctrl-b{width:26px;height:26px;border-radius:7px;border:1px solid var(--panel-line);
+    background:rgba(3,2,10,0.85);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .ctrl-b:active{transform:scale(.92)}
+
+  .placed.dragging{opacity:.55;transform:scale(.96)}
+  .tray{display:flex;flex-direction:column;gap:14px;margin-bottom:18px;max-width:620px;margin-inline:auto}
+  .tray-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:56px}
+  .tray-row-label{font-size:15px;font-weight:800;min-width:92px;text-align:start}
+  .tray-row-label.yuval{color:var(--purple-br)}
+  .tray-row-label.itai{color:var(--turq)}
+  .tray-row-items{display:flex;gap:12px;flex-wrap:wrap}
+  .verify-box{text-align:center;margin-bottom:18px}
+  .verify-feedback{margin-top:12px;font-weight:700;font-size:16px;min-height:22px;line-height:1.5;max-width:560px;margin-inline:auto}
+  .verify-feedback.err{color:#ff8aa0}
+  .verify-feedback.ok{color:#7dffa8}
+  .tray-item{position:relative;cursor:pointer;border-radius:11px;padding:8px;
+    background:var(--panel);border:2px solid transparent;transition:border-color .12s,transform .12s}
+  .tray-item:hover{transform:translateY(-2px)}
+  .tray-item.sel{outline:2px solid var(--turq);outline-offset:2px;box-shadow:0 0 22px rgba(0,229,255,0.45)}
+  .tray-item .lbl{font-size:11px;text-align:center;color:var(--ink-dim);margin-top:5px;font-weight:600}
+  .tray-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:66px;direction:ltr}
+  .tray-mini i{aspect-ratio:1/1;border-radius:3px;background:var(--c-none)}
+  .tray-mini i.red{background:var(--c-red)}.tray-mini i.blue{background:var(--c-blue)}.tray-mini i.yellow{background:var(--c-yellow)}
+
+  .s4-clues{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;max-width:620px;margin-inline:auto}
+  @media(max-width:680px){.placed{gap:3px;padding:6px}}
+
+  /* ===== Success ===== */
+  .success{text-align:center;padding:36px 10px;display:flex;flex-direction:column;align-items:center;gap:20px}
+  .success h2{font-size:34px;font-weight:900;
+    background:linear-gradient(90deg,var(--turq),#ffd23f);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .reveal{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;width:min(360px,86vw);direction:ltr}
+  .reveal i{aspect-ratio:1/1;border-radius:3px;background:rgba(255,255,255,0.04)}
+  .reveal i.on{background:var(--c-yellow);box-shadow:0 0 12px rgba(255,210,63,0.6)}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+  .reset-btn{font-family:inherit;font-size:12px;color:var(--ink-dim);background:transparent;
+    border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:5px 12px;cursor:pointer}
+  .reset-btn:hover{color:#ff8aa0;border-color:#ff8aa0}
+  .footer{margin-top:26px;text-align:center}
+  .loading{min-height:60vh;display:flex;align-items:center;justify-content:center;color:var(--ink-dim);font-size:18px}
+
+  /* ===== v2 additions ===== */
+  .name-pill{font-weight:800;font-size:18px;color:var(--turq);
+    border:1px solid var(--panel-line);border-radius:999px;padding:6px 18px;background:rgba(0,229,255,0.06)}
+  .instr-btn{font-family:inherit;font-weight:700;font-size:14px;color:var(--turq);cursor:pointer;
+    border:1px solid var(--panel-line);border-radius:999px;padding:8px 18px;background:rgba(88,6,112,0.28)}
+  .instr-btn:hover{border-color:var(--turq);background:rgba(88,6,112,0.45)}
+  h3.board-title,h3.panel-title{display:block;font-size:26px;font-weight:800;color:#fff;text-align:center;margin-bottom:14px}
+  .gal-section{font-size:26px;font-weight:800;text-align:center;color:#fff;margin:6px 0 14px}
+  ol.clues-num{list-style:decimal;padding-inline-start:26px;margin:0;display:flex;flex-direction:column;gap:8px}
+  ol.clues-num li{font-size:16px;line-height:1.5;padding-inline-start:4px}
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(2,1,8,0.80);display:flex;align-items:center;justify-content:center;z-index:80;padding:20px}
+  .modal-box{position:relative;max-width:540px;width:100%;background:var(--panel);border:1px solid var(--turq);
+    border-radius:18px;padding:32px 26px 22px;box-shadow:0 0 44px rgba(0,229,255,0.22)}
+  .modal-x{position:absolute;top:10px;inset-inline-end:12px;width:34px;height:34px;border-radius:9px;
+    border:1px solid var(--panel-line);background:rgba(3,2,10,0.7);color:#fff;font-size:16px;cursor:pointer}
+  .modal-text{font-size:17px;line-height:1.7;color:var(--ink);white-space:pre-line}
+  .modal-close{margin:20px auto 0;font-family:inherit;font-weight:700;font-size:16px;cursor:pointer;color:#03121a;
+    padding:11px 30px;border-radius:11px;border:none;background:linear-gradient(180deg,#7df9ff,var(--turq));display:block}
+  /* code input (stage 4) */
+  .code-box{max-width:420px;margin:0 auto 22px;text-align:center}
+  .code-box .ct{font-size:18px;font-weight:700;color:#fff;margin-bottom:10px}
+  .code-input{font-family:inherit;font-size:24px;font-weight:800;text-align:center;width:150px;
+    padding:10px;border-radius:11px;border:2px solid var(--panel-line);background:rgba(3,2,10,0.6);color:var(--turq);letter-spacing:4px}
+  .code-input:focus{outline:none;border-color:var(--turq)}
+  .code-btn{display:block;margin:14px auto 0;font-family:inherit;font-weight:800;font-size:18px;cursor:pointer;color:#03121a;
+    padding:12px 34px;border-radius:12px;border:none;background:linear-gradient(180deg,#7df9ff,var(--turq));box-shadow:0 6px 0 #0a6b78}
+  .code-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #0a6b78}
+  .code-feedback{margin-top:12px;font-weight:600;font-size:16px;color:#ff8aa0;min-height:22px;line-height:1.5}
+  .big-congrats{font-size:30px;font-weight:900;color:var(--turq);line-height:1.4;max-width:560px}
+  .inter{min-height:72vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .inter .msg{font-size:30px;font-weight:800;color:var(--turq);line-height:1.5;max-width:620px;
+    text-shadow:0 0 30px rgba(0,229,255,0.25)}
+  .inter-instr-title{font-size:22px;font-weight:800;color:var(--turq);margin-top:22px}
+  .inter-instr-text{font-size:16px;line-height:1.7;color:var(--ink);max-width:640px;margin:10px auto 0;text-align:start}
+  .entry{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:22px;padding:24px}
+  .entry-title{font-size:30px;font-weight:800;color:var(--turq);text-shadow:0 0 26px rgba(0,229,255,0.22)}
+  .entry-text{font-size:18px;line-height:1.8;color:var(--ink);max-width:660px;white-space:pre-line;text-align:start}
+</style>
+</head>
+<body>
+<canvas id="confetti" class="hidden"></canvas>
+<div id="app">
+  <div id="screen-loading" class="loading">מתחבר למערכת...</div>
+
+  <!-- OPENING -->
+  <div id="screen-open" class="opening hidden">
+    <div class="title-row"><span class="ic">🔳</span><h1>CUBE LOGIC</h1><span class="ic">🔳</span></div>
+    <h2>מי אתם?</h2>
+    <div class="choose">
+      <button class="name-btn" data-role="yuval" id="btn-yuval">יובל</button>
+      <button class="name-btn" data-role="partner" id="btn-partner">איתי</button>
+    </div>
+    <div class="taken-note" id="taken-note"></div>
+    <button class="reset-btn" id="reset-open" style="margin-top:4px">איפוס</button>
+  </div>
+
+  <!-- PLAY (stages 1-3) -->
+  <div id="screen-play" class="hidden">
+    <div class="top">
+      <div class="logo">CUBE LOGIC</div>
+      <div class="name-pill" id="play-name"></div>
+      <button class="instr-btn" id="instr-play">הוראות</button>
+    </div>
+    <div class="play-grid">
+      <div class="card">
+        <h3 class="board-title" id="board-title"></h3>
+        <div class="board-wrap">
+          <div class="board" id="my-board"></div>
+          <button class="done-btn" id="done-btn" disabled>סיימתי!</button>
+          <div class="status-msg" id="status-msg"></div>
+        </div>
+      </div>
+      <div class="card" id="clue-card"></div>
+    </div>
+    <div class="gal-section">הלוחות שפתרתם</div>
+    <div class="gallery" id="gallery"></div>
+    <div class="footer"><button class="reset-btn" id="reset-play">איפוס משחק</button></div>
+  </div>
+
+  <!-- STAGE 4 -->
+  <div id="screen-s4" class="hidden">
+    <div class="top">
+      <div class="logo">CUBE LOGIC</div>
+      <div class="name-pill" id="s4-name"></div>
+    </div>
+    <h3 class="board-title">הלוח המשותף</h3>
+    <div style="text-align:center;margin-bottom:18px">
+      <button class="instr-btn" id="instr-s4">הוראות ללוח המשותף</button>
+    </div>
+    <div class="slots" id="slots"></div>
+    <div class="verify-box">
+      <button class="code-btn" id="verify-btn">בדיקת הסידור</button>
+      <div class="verify-feedback" id="verify-feedback"></div>
+    </div>
+    <div class="code-box hidden" id="code-box">
+      <div class="ct">הזינו את הקוד שזיהיתם</div>
+      <input class="code-input" id="code-input" inputmode="numeric" maxlength="4" autocomplete="off">
+      <button class="code-btn" id="code-btn">בדיקת הקוד</button>
+      <div class="code-feedback" id="code-feedback"></div>
+    </div>
+    <div class="tray" id="tray"></div>
+    <div class="s4-clues" id="s4-clues"></div>
+    <div class="footer"><button class="reset-btn" id="reset-s4">איפוס משחק</button></div>
+  </div>
+
+  <!-- ENTRY INSTRUCTIONS -->
+  <div id="screen-entry" class="hidden">
+    <div class="entry">
+      <h2 class="entry-title">הוראות המשחק:</h2>
+      <div class="entry-text" id="entry-text"></div>
+      <button class="done-btn" id="entry-continue">המשך</button>
+    </div>
+  </div>
+
+  <!-- INTER-STAGE -->
+  <div id="screen-inter" class="hidden">
+    <div class="inter"><div id="inter-box"></div></div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="screen-win" class="hidden">
+    <div class="success">
+      <h2>מושלם! פיצחתם את הקוד יחד</h2>
+      <div class="reveal" id="reveal"></div>
+      <div class="big-congrats">מזל טוב ליובל! יומולדת 12 מתקרב...</div>
+      <button class="reset-btn" id="reset-win">למשחק חדש</button>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <button class="modal-x" id="modal-x">✕</button>
+      <div class="modal-text" id="modal-text"></div>
+      <button class="modal-close" id="modal-close">סגור</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, update, remove, onValue, onDisconnect, runTransaction }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+/* ===================== נתונים נעולים ומאומתים ===================== */
+const ROOM = "cube-mission";
+const NAME = { yuval:"יובל", partner:"איתי" };
+const CELL = ["שמאל-עליון","אמצע-עליון","ימין-עליון","שמאל-אמצע","מרכז","ימין-אמצע","שמאל-תחתון","אמצע-תחתון","ימין-תחתון"];
+
+// raw = מה שכל שחקן בונה בשלבים 1-3 ; clues = רשימת הכללים המלאה (הגישור מובלע ככלל אחרון, מנוסח עם שם השותף)
+const STAGES = {
+  1:{
+    yuval:{ raw:["red","blue","red","yellow","yellow","yellow","yellow","red","blue"],
+      clues:["הפינה השמאלית-התחתונה צהובה","הפינה הימנית-התחתונה כחולה","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים","יש בדיוק 3 משבצות אדומות, ואף אחת מהן אינה צמודה לאחרת","יש יותר משבצות צהובות מאשר אדומות","המשבצת העליונה-האמצעית זהה בצבעה למשבצת המרכזית אצל איתי"] },
+    partner:{ raw:["red","blue","yellow","red","blue","blue","red","blue","blue"],
+      clues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה צהובה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה מוקפת רק בכחול מכל הצדדים","יש יותר משבצות כחולות מאשר אדומות","הפינה הימנית-התחתונה זהה בצבעה לפינה הימנית-התחתונה אצל יובל"] }
+  },
+  2:{
+    yuval:{ raw:["red","yellow","blue","red","yellow","blue","red","yellow","yellow"],
+      clues:["יש בדיוק 3 משבצות אדומות","הפינה השמאלית-העליונה אדומה","הפינה הימנית-העליונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","הפינה הימנית-התחתונה זהה בצבעה לפינה השמאלית-העליונה אצל איתי"] },
+    partner:{ raw:["yellow","yellow","blue","red","red","red","yellow","yellow","blue"],
+      clues:["יש בדיוק 4 משבצות צהובות","הפינה הימנית-העליונה כחולה","הפינה הימנית-התחתונה כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","כל משבצת כחולה גובלת בדיוק ב-2 צבעים אחרים","יש יותר משבצות צהובות מאשר אדומות","המשבצת השמאלית-האמצעית זהה בצבעה לפינה השמאלית-העליונה אצל יובל"] }
+  },
+  3:{
+    yuval:{ raw:["yellow","red","blue","yellow","red","blue","yellow","red","red"],
+      clues:["יש בדיוק 3 משבצות צהובות","הפינה השמאלית-העליונה צהובה","הפינה הימנית-העליונה כחולה","אף משבצת צהובה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת כחולה גובלת בדיוק ב-1 צבעים אחרים","הפינה הימנית-התחתונה זהה בצבעה לפינה הימנית-העליונה אצל איתי"] },
+    partner:{ raw:["yellow","red","red","yellow","yellow","yellow","yellow","blue","blue"],
+      clues:["יש בדיוק 2 משבצות אדומות","הפינה הימנית-העליונה אדומה","הפינה הימנית-התחתונה כחולה","אף משבצת אדומה לא נוגעת במשבצת כחולה","כל משבצת אדומה צמודה לפחות למשבצת אדומה אחת","כל משבצת כחולה צמודה לפחות למשבצת כחולה אחת","כל משבצת צהובה צמודה לפחות למשבצת צהובה אחת","הפינה השמאלית-התחתונה זהה בצבעה לפינה השמאלית-העליונה אצל יובל"] }
+  }
+};
+
+// שלב 4: כל לוח, מי בנה אותו, באיזה שלב, כינוי, וצבע מסגרת מזהה (יובל=סגול, איתי=טורקיז)
+// שלב 4: id פנימי נשאר ; label = אות תצוגה A-F לפי סדר המאגר ; border = מסגרת מזהה
+const S4_BOARDS = [
+  { id:"A", owner:"yuval",   stage:1, label:"לוח A", border:"#c79bf2" },
+  { id:"C", owner:"yuval",   stage:2, label:"לוח B", border:"#9d4edd" },
+  { id:"E", owner:"yuval",   stage:3, label:"לוח C", border:"#6a1b9a" },
+  { id:"B", owner:"partner", stage:1, label:"לוח D", border:"#7df9ff" },
+  { id:"F", owner:"partner", stage:2, label:"לוח E", border:"#00bcd4" },
+  { id:"D", owner:"partner", stage:3, label:"לוח F", border:"#00838f" },
+];
+// כללי הסידור (מסונכרנים לתוויות A-F)
+const S4_RULES = [
+  "לוח C מסובב ב-180 מעלות (חצי סיבוב) ואינו ממוקם באף פינה.",
+  "לוח A מסובב 90 מעלות ימינה (רבע סיבוב עם כיוון השעון) ונמצא באותה שורה עם לוח D.",
+  "לוח B מסובב ב-180 מעלות (חצי סיבוב) וממוקם בפינה, מעל ללוח E.",
+  "לוח A ולוח B באותה שורה.",
+  "לוח F מסובב ב-90 מעלות שמאלה (רבע סיבוב נגד כיוון השעון) וחייב להיות צמוד לקצה השמאלי של הלוח המשותף.",
+  "לוח D צמוד ללוח C."
+];
+
+// טקסטים להוראות (פופ-אפ + מסך הוראות פתיחה)
+const INSTR_PLAY = "יובל ואיתי, ברוכים הבאים!\nשניכם נכנסתם לאותו משחק, כל אחד למסך שלו. לכל אחד מכם יופיע מיד על המסך לוח משבצות 3X3.\nכל אחד מכם צריך לצבוע את המשבצות בלוח שלו בכחול, אדום או צהוב - בדיוק על פי הכללים שמופיעים על המסך. שימו לב! לכל אחד מכם יש לוח אחר, והכללים של כל אחד מכם מופיעים אצל השני.\nעליכם לדבר ולשתף פעולה ביניכם, להקריא אחד לשני את כללי צביעת הקוביות ולפצח את הלוחות יחד בשיתוף פעולה. לצביעת קוביה יש ללחוץ עליה, כל לחיצה מחליפה את הצבע במחזוריות.\nבהצלחה!";
+const INSTR_S4 = "בשלב הרביעי עליכם לשתף פעולה ולסדר את הלוחות שפתרתם בלוח משותף. הכללים לסידור הלוח מופיעים לשניכם על המסך מתחת הלוחות שאספתם. כדי למקם לוח שלכם בלוח המשותף יש ללחוץ ולסמן אותו ואז ללחוץ על המיקום הרצוי. כל לחיצה נוספת על לוח אחרי שמיקמתם אותו תסובב אותו ב-90 מעלות ימינה (רבע סיבוב עם כיוון השעון). שימו לב! כל לחיצה מסובבת רבע סיבוב לאותו הכיוון, כך שלחיצות חוזרות ממשיכות לסובב עד שחוזרים להתחלה. כדי לשנות מיקום של לוח, אפשר לגרור אותו בלחיצה ארוכה. ברגע שתסדרו את הלוחות במיקומם ובמצבם הנכון, תוכלו לגלות קוד. כשתגלו את הקוד, הזינו אותו בשדה למטה ולחצו על בדיקת הקוד. אם אינכם מצליחים לגלות את הקוד, בדקו שוב את סידור הלוחות אל מול הכללים. בהצלחה!";
+
+// תבנית ה-12 המתוקנת (משבצות צהובות, רשת 6 שורות x 9 עמודות). 1 = צהוב.
+const TARGET_12 = [
+  [1,1,0,0,0,1,1,1,0],
+  [0,1,0,0,0,0,0,1,0],
+  [0,1,0,0,0,0,0,1,0],
+  [0,1,0,0,0,1,1,1,0],
+  [0,1,0,0,0,1,0,0,0],
+  [1,1,1,0,0,1,1,1,0],
+];
+
+/* ===================== כלי סיבוב ===================== */
+function rot90cw(a){ const r=[]; for(let i=0;i<3;i++)for(let j=0;j<3;j++) r[i*3+j]=a[(2-j)*3+i]; return r; }
+function rot90ccw(a){ const r=[]; for(let i=0;i<3;i++)for(let j=0;j<3;j++) r[i*3+j]=a[j*3+(2-i)]; return r; }
+function rot180(a){ return a.slice().reverse(); }
+function applyRot(a,deg){ deg=((deg%360)+360)%360; if(deg===90)return rot90cw(a); if(deg===180)return rot180(a); if(deg===270)return rot90ccw(a); return a.slice(); }
+
+/* ===================== Firebase ===================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyC-pL-2QYZw2-VX42nAuvwHK9hJj_GQfoQ",
+  authDomain: "cube-color-clues.firebaseapp.com",
+  databaseURL: "https://cube-color-clues-default-rtdb.firebaseio.com",
+  projectId: "cube-color-clues",
+  storageBucket: "cube-color-clues.firebasestorage.app",
+  messagingSenderId: "864403622393",
+  appId: "1:864403622393:web:ad5efd5f6e0169edd75528"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const R = p => ref(db, ROOM + (p?("/"+p):""));
+
+/* ===================== מצב מקומי ===================== */
+let myRole = null;
+let remote = null;          // צילום מצב מ-Firebase
+let lastProcessedStage = 0; // למניעת מעבר שלב כפול
+let selectedTray = null;    // שלב 4 - לוח שנבחר מהמאגר
+let arrErrMsg = "";         // הודעת שגיאה של בדיקת הסידור (מקומית, נעלמת במגע בלוח)
+let hbTimer = null;
+let lastStage = 0;          // השלב האחרון שהוצג (למסך ביניים)
+let transitioning = false;  // בזמן מסך הביניים בין שלבים
+let playStageShown = 0;     // לניקוי הערת שגיאה במעבר שלב
+let entryGate = false;      // מסך הוראות הפתיחה לפני לוח #1
+
+const STALE_MS = 15000;     // תפקיד נחשב פעיל רק אם הסימן החי עודכן ב-15 השניות האחרונות
+const HB_MS = 5000;         // קצב הסימן החי
+
+// איפוס אוטומטי בכל טעינה - ניקוי cache מקומי, תוך שמירת מזהה לקוח יציב (כדי שתפקיד שלכם לא ייראה "תפוס")
+let clientId = null;
+try{ clientId = localStorage.getItem("cube_cid"); }catch(e){}
+try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
+if(!clientId){ clientId = "c_"+Math.random().toString(36).slice(2)+Date.now().toString(36); }
+try{ localStorage.setItem("cube_cid", clientId); }catch(e){}
+
+function isFreshRole(v){ return v && typeof v==="object" && v.ts && (Date.now()-v.ts < STALE_MS); }
+
+const $ = id => document.getElementById(id);
+const screens = ["loading","open","entry","play","s4","win","inter"];
+function show(name){ screens.forEach(s=>$("screen-"+s).classList.toggle("hidden", s!==name)); }
+
+/* ===================== מסך פתיחה ===================== */
+function initOpening(){
+  show("open");
+  document.querySelectorAll(".name-btn").forEach(btn=>{
+    btn.classList.remove("taken");
+    btn.addEventListener("click", ()=> claimRole(btn.dataset.role));
+  });
+}
+
+async function claimRole(role){
+  if(myRole) return;
+  const other = role==="yuval"?"partner":"yuval";
+  try{
+    const res = await runTransaction(R("roles/"+role), cur => {
+      if(isFreshRole(cur) && cur.id!==clientId) return undefined; // תפוס באמת ע"י אחר -> בטל
+      return { id:clientId, ts:Date.now() };                      // פנוי / ישן / שלי -> תפוס מחדש
+    });
+    if(!res.committed){
+      $("taken-note").textContent = `${NAME[role]} כבר בפנים. בחרו את "${NAME[other]}".`;
+      return;
+    }
+    myRole = role;
+    onDisconnect(R("roles/"+role)).remove(); // שחרור תפקיד אוטומטי בניתוק/ריענון
+    startHeartbeat();
+    entryGate = true;
+    $("entry-text").textContent = INSTR_PLAY;
+    show("entry");
+    subscribe();                 // מתחילים להקשיב מיד
+    await initRoomIfNeeded();     // אם החדר ריק - מאתחל; ההאזנה תרענן את המסך
+  }catch(err){
+    myRole = null;               // איפוס כדי שאפשר יהיה לנסות שוב
+    if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
+    $("taken-note").textContent = "שגיאת חיבור ל-Firebase. נסו שוב, או לחצו 'התחלה נקייה'.";
+  }
+}
+
+function startHeartbeat(){
+  if(hbTimer) clearInterval(hbTimer);
+  const beat = ()=>{ if(myRole) set(R("roles/"+myRole), { id:clientId, ts:Date.now() }); };
+  beat();
+  hbTimer = setInterval(beat, HB_MS);
+}
+
+async function initRoomIfNeeded(){
+  const snap = await get(R("stage"));
+  if(snap.val()==null){
+    await update(R(), {
+      stage:1,
+      boards:{ yuval:emptyBoard(), partner:emptyBoard() },
+      status:{ yuval:"waiting", partner:"waiting" }
+    });
+  }
+}
+function emptyBoard(){ return Array(9).fill("none"); }
+
+/* ===================== מנוי לזמן אמת ===================== */
+function subscribe(){
+  onValue(R(), snap=>{
+    remote = snap.val()||{};
+    if(remote.status && remote.status.yuval==="waiting" && remote.status.partner==="waiting") lastProcessedStage = 0;
+    render();
+    maybeAdvance();
+  });
+}
+
+/* ===================== ציור משבצת ===================== */
+const CYCLE = { none:"red", red:"blue", blue:"yellow", yellow:"none" };
+async function paintCell(idx){
+  if(!remote || remote.stage>3) return;
+  if(remote.status?.[myRole]==="correct") return; // נעול אחרי תשובה נכונה
+  if($("status-msg").dataset.kind==="err") setStatusMsg("",""); // הערת השגיאה נעלמת בכל שינוי משבצת
+  const board = (remote.boards?.[myRole] || emptyBoard()).slice();
+  board[idx] = CYCLE[board[idx]||"none"];
+  await set(R("boards/"+myRole), board);
+}
+
+async function clickDone(){
+  const stage = remote.stage;
+  const raw = STAGES[stage][myRole].raw;
+  const board = remote.boards?.[myRole] || emptyBoard();
+  const correct = raw.every((c,i)=> board[i]===c);
+  if(correct){
+    await set(R("status/"+myRole), "correct");
+  }else{
+    setStatusMsg("err","משהו לא מסתדר - בדקו את הרמזים שוב 🔍");
+  }
+}
+
+/* ===================== מעבר שלב (מתואם ע"י yuval) ===================== */
+async function maybeAdvance(){
+  if(!remote) return;
+  const stage = remote.stage;
+  if(stage>3) return;
+  const st = remote.status||{};
+  if(st.yuval==="correct" && st.partner==="correct" && myRole==="yuval" && lastProcessedStage!==stage){
+    lastProcessedStage = stage;
+    const gal = remote.gallery || { yuval:[], partner:[] };
+    const gy = (gal.yuval||[]).slice(); const gp = (gal.partner||[]).slice();
+    gy.push((remote.boards?.yuval||emptyBoard()).slice());
+    gp.push((remote.boards?.partner||emptyBoard()).slice());
+    const next = stage+1;
+    const payload = { stage:next, gallery:{ yuval:gy, partner:gp } };
+    if(next<=3){
+      payload.boards = { yuval:emptyBoard(), partner:emptyBoard() };
+      payload.status = { yuval:"waiting", partner:"waiting" };
+    }else{
+      payload.boards = null; payload.status = { yuval:"waiting", partner:"waiting" };
+      payload.arrangement = buildInitialArrangement();
+    }
+    await update(R(), payload);
+  }
+}
+
+function buildInitialArrangement(){
+  // כל לוח מתחיל במאגר (slot=-1), סיבוב 0
+  const out = {};
+  S4_BOARDS.forEach(b=>{ out[b.id] = { slot:-1, rot:0 }; });
+  return { boards: out };
+}
+
+/* ===================== ציור מסכים ===================== */
+function render(){
+  if(!remote){ return; }
+  if(entryGate) return;                       // ממתינים לסגירת מסך ההוראות
+  if(remote.status?.success){ show("win"); renderWin(); lastStage=remote.stage||lastStage; return; }
+  const stage = remote.stage;
+  if(stage==null) return;
+  if(transitioning) return;                  // מתעלמים מרינדור בזמן מסך הביניים
+  if(lastStage>=1 && stage>lastStage){       // עברנו שלב -> מסך ביניים 5 שניות
+    const from=lastStage, to=stage;
+    lastStage = stage;                        // מונע הפעלה כפולה
+    showInterstitial(from, to);
+    return;
+  }
+  lastStage = stage;
+  if(stage<=3){ show("play"); renderPlay(); }
+  else if(stage===4){ show("s4"); renderS4(); }
+}
+
+function showInterstitial(from, to){
+  transitioning = true;
+  $("inter-box").innerHTML = `<div class="msg">כל הכבוד, הצלחתם לפתור את שלב ${from}. ממשיכים לשלב ${to}.</div>`;
+  show("inter");
+  if(to===4){
+    const t=document.createElement("div"); t.className="inter-instr-title"; t.textContent="הוראות לשלב 4:";
+    const x=document.createElement("div"); x.className="inter-instr-text"; x.textContent=INSTR_S4;
+    const b=document.createElement("button"); b.className="done-btn"; b.textContent="המשך"; b.style.marginTop="22px";
+    b.addEventListener("click", ()=>{ transitioning=false; render(); });
+    $("inter-box").append(t,x,b);   // ממתינים ללחיצת המשך (בלי טיימר)
+  }else{
+    setTimeout(()=>{ transitioning=false; render(); }, 5000);
+  }
+}
+
+function renderPlay(){
+  const stage = remote.stage;
+  const partnerRole = myRole==="yuval"?"partner":"yuval";
+  if(stage!==playStageShown){ if($("status-msg").dataset.kind==="err") setStatusMsg("",""); playStageShown=stage; }
+  $("play-name").textContent = NAME[myRole];
+  $("board-title").textContent = `לוח #${stage}`;
+  const board = remote.boards?.[myRole] || emptyBoard();
+  const locked = remote.status?.[myRole]==="correct";
+
+  // לוח
+  const bEl = $("my-board"); bEl.innerHTML="";
+  board.forEach((c,i)=>{
+    const d=document.createElement("div");
+    d.className = "cell "+(c==="none"?"":c)+(locked?" locked":"");
+    if(!locked) d.addEventListener("click", ()=>paintCell(i));
+    bEl.appendChild(d);
+  });
+
+  // כפתור סיום
+  const filled = board.every(c=>c!=="none");
+  const doneBtn = $("done-btn");
+  doneBtn.disabled = !filled || locked;
+
+  // הודעת סטטוס
+  const st = remote.status||{};
+  if(locked && !(st.yuval==="correct"&&st.partner==="correct")){
+    setStatusMsg("ok",`הצלחת, כל הכבוד! עכשיו ממתינים ל${NAME[partnerRole]}`);
+  }else if(!locked){
+    if($("status-msg").dataset.kind!=="err") setStatusMsg("", filled?"לחצו 'סיימתי' לבדיקה":"");
+  }
+
+  // הכללים לפתרון הלוח של השותף (אני מקריא להם). הגישור מובלע ככלל אחרון ברשימה.
+  const pc = STAGES[stage][partnerRole];
+  $("clue-card").innerHTML = `
+    <h3 class="panel-title">הכללים ללוח של ${NAME[partnerRole]}</h3>
+    <ol class="clues-num">${pc.clues.map(c=>`<li>${c}</li>`).join("")}</ol>
+  `;
+
+  renderGallery();
+}
+
+function setStatusMsg(kind,text){
+  const el=$("status-msg");
+  el.className="status-msg "+(kind||"");
+  el.dataset.kind=kind||"";
+  el.textContent=text;
+}
+
+function miniBoard(arr){
+  return `<div class="mini">${arr.map(c=>`<i class="${c==="none"?"":c}"></i>`).join("")}</div>`;
+}
+function renderGallery(){
+  const gal = remote.gallery || { yuval:[], partner:[] };
+  $("gallery").innerHTML = `
+    <div class="gal-col"><h4>${NAME.yuval}</h4><div class="gal-row">${(gal.yuval||[]).map(miniBoard).join("")||"<span style='color:var(--ink-dim);font-size:13px'>עוד אין לוחות</span>"}</div></div>
+    <div class="gal-col"><h4>${NAME.partner}</h4><div class="gal-row">${(gal.partner||[]).map(miniBoard).join("")||"<span style='color:var(--ink-dim);font-size:13px'>עוד אין לוחות</span>"}</div></div>
+  `;
+}
+
+/* ===================== שלב 4 ===================== */
+function solvedArrayOf(b){
+  const gal = remote.gallery || {};
+  const arr = (gal[b.owner]||[])[b.stage-1];
+  return arr ? arr.slice() : STAGES[b.stage][b.owner].raw.slice(); // גיבוי לנתון המאומת
+}
+
+function renderS4(){
+  $("s4-name").textContent = NAME[myRole];
+  const arr = remote.arrangement?.boards || buildInitialArrangement().boards;
+  const solved = !!remote.arrangement?.solved;
+
+  // משבצות (מוצמדות) - עם אות-רקע גדולה ושקופה, גרירה=הזזה, הקשה=סיבוב
+  const slotsEl = $("slots"); slotsEl.innerHTML="";
+  for(let s=0;s<6;s++){
+    const slot=document.createElement("div");
+    slot.className="slot"; slot.dataset.slot=s;
+    const bid = Object.keys(arr).find(k=>arr[k] && arr[k].slot===s);
+    if(bid){
+      slot.classList.add("filled");
+      const bMeta = S4_BOARDS.find(b=>b.id===bid);
+      const letter = bMeta.label.replace(/^לוח\s*/,"");
+      const colors = applyRot(solvedArrayOf(bMeta), arr[bid].rot);
+      const placed=document.createElement("div");
+      placed.className="placed";
+      placed.style.boxShadow = "inset 0 0 0 3px "+bMeta.border; // מסגרת מזהה
+      placed.innerHTML = colors.map(c=>`<i class="${c==="none"?"":c}"></i>`).join("") + `<div class="board-letter">${letter}</div>`;
+      attachDrag(placed, bid);
+      const ctrl=document.createElement("div");
+      ctrl.className="placed-ctrl";
+      ctrl.innerHTML=`<button class="ctrl-b" title="החזר למאגר">✕</button>`;
+      ctrl.children[0].addEventListener("click", e=>{e.stopPropagation();removeBoard(bid);});
+      slot.appendChild(placed); slot.appendChild(ctrl);
+    }else{
+      slot.addEventListener("click", ()=>placeSelected(s));
+    }
+    slotsEl.appendChild(slot);
+  }
+
+  // מאגר - שתי שורות מתויגות: לוחות יובל (סגול) / לוחות איתי (טורקיז)
+  const trayEl=$("tray"); trayEl.innerHTML="";
+  [["yuval","לוחות יובל","yuval"],["partner","לוחות איתי","itai"]].forEach(([owner,labelText,cls])=>{
+    const row=document.createElement("div"); row.className="tray-row";
+    const lab=document.createElement("span"); lab.className="tray-row-label "+cls; lab.textContent=labelText;
+    const items=document.createElement("div"); items.className="tray-row-items";
+    S4_BOARDS.filter(b=>b.owner===owner).forEach(b=>{
+      const st = arr[b.id]||{slot:-1,rot:0};
+      if(st.slot!==-1) return;
+      const letter=b.label.replace(/^לוח\s*/,"");
+      const colors=solvedArrayOf(b);
+      const item=document.createElement("div");
+      item.className="tray-item"+(selectedTray===b.id?" sel":"");
+      item.style.borderColor=b.border;
+      item.innerHTML=`<div class="tray-mini-wrap"><div class="tray-mini">${colors.map(c=>`<i class="${c==="none"?"":c}"></i>`).join("")}</div><div class="board-letter">${letter}</div></div><div class="lbl">${b.label}</div>`;
+      item.addEventListener("click", ()=>{ selectedTray=(selectedTray===b.id?null:b.id); renderS4(); });
+      items.appendChild(item);
+    });
+    row.appendChild(lab); row.appendChild(items);
+    trayEl.appendChild(row);
+  });
+
+  // כללי סידור
+  $("s4-clues").innerHTML = `
+    <div class="card"><h3 class="panel-title">כללי סידור הלוח המשותף</h3>
+      <ol class="clues-num">${S4_RULES.map(c=>`<li>${c}</li>`).join("")}</ol></div>`;
+
+  // בדיקת הסידור / משוב / חשיפת שדה הקוד
+  const vb=$("verify-btn"), vf=$("verify-feedback"), cb=$("code-box");
+  if(solved){
+    vb.classList.add("hidden");
+    vf.className="verify-feedback ok";
+    vf.textContent="אלופים! פתרתם את סידור הלוח המשותף! עכשיו נשאר לכם לגלות את הקוד.";
+    cb.classList.remove("hidden");
+  }else{
+    vb.classList.remove("hidden");
+    cb.classList.add("hidden");
+    if(arrErrMsg){ vf.className="verify-feedback err"; vf.textContent=arrErrMsg; }
+    else { vf.className="verify-feedback"; vf.textContent=""; }
+  }
+}
+
+// לחיצה ארוכה = גרירה/הזזה (שומר סיבוב) ; הקשה קצרה = סיבוב
+function attachDrag(el, bid){
+  let sx=0, sy=0, armed=false, moved=false, active=false, timer=null;
+  const disarm=()=>{ if(timer){ clearTimeout(timer); timer=null; } };
+  el.addEventListener("pointerdown", e=>{
+    if(e.target.closest(".placed-ctrl")) return;
+    active=true; armed=false; moved=false; sx=e.clientX; sy=e.clientY;
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
+    timer=setTimeout(()=>{ armed=true; el.classList.add("dragging"); }, 280); // ההחזקה שמרימה לגרירה
+  });
+  el.addEventListener("pointermove", e=>{
+    if(!active) return;
+    const dist=Math.hypot(e.clientX-sx, e.clientY-sy);
+    if(!armed && dist>10) disarm();      // תזוזה לפני ההחזקה - מבטל זרימת גרירה
+    if(armed && dist>4) moved=true;
+  });
+  el.addEventListener("pointerup", e=>{
+    if(!active) return; active=false; disarm();
+    try{ el.releasePointerCapture(e.pointerId); }catch(_){}
+    el.classList.remove("dragging");
+    if(armed && moved){                  // לחיצה ארוכה + גרירה = הזזה
+      const tgt=document.elementFromPoint(e.clientX, e.clientY);
+      const slotEl=tgt && tgt.closest(".slot");
+      if(slotEl && slotEl.dataset.slot!=null) moveBoardToSlot(bid, parseInt(slotEl.dataset.slot,10));
+    } else if(!armed){                    // הקשה קצרה = סיבוב
+      rotateBoard(bid);
+    }
+    armed=false;
+  });
+  el.addEventListener("pointercancel", ()=>{ active=false; disarm(); el.classList.remove("dragging"); });
+}
+
+async function moveBoardToSlot(id, targetSlot){
+  const arr = JSON.parse(JSON.stringify(remote.arrangement.boards));
+  if(arr[id].slot===targetSlot) return;
+  const occ = Object.keys(arr).find(k=>arr[k].slot===targetSlot);
+  if(occ && occ!==id){ const tmp=arr[id].slot; arr[id].slot=targetSlot; arr[occ].slot=tmp; } // החלפה
+  else { arr[id].slot=targetSlot; }
+  clearArrError();
+  await set(R("arrangement/boards"), arr);
+}
+
+function clearArrError(){
+  if(!arrErrMsg) return;
+  arrErrMsg="";
+  const vf=$("verify-feedback"); if(vf && !remote.arrangement?.solved){ vf.className="verify-feedback"; vf.textContent=""; }
+}
+
+function verifyArrangement(){
+  const arr = remote.arrangement?.boards || {};
+  const allPlaced = S4_BOARDS.every(b=>arr[b.id] && arr[b.id].slot>=0);
+  let ok=false;
+  if(allPlaced){
+    const grid=Array.from({length:6},()=>Array(9).fill(0));
+    for(const b of S4_BOARDS){
+      const st=arr[b.id];
+      const colors=applyRot(solvedArrayOf(b), st.rot);
+      const br=Math.floor(st.slot/3)*3, bc=(st.slot%3)*3;
+      for(let i=0;i<9;i++) if(colors[i]==="yellow") grid[br+Math.floor(i/3)][bc+(i%3)]=1;
+    }
+    ok = grid.every((row,r)=>row.every((v,c)=>v===TARGET_12[r][c]));
+  }
+  if(ok){
+    arrErrMsg="";
+    set(R("arrangement/solved"), true); // מסונכרן; renderS4 יציג הצלחה + שדה קוד
+  }else{
+    arrErrMsg="לא בדיוק. בדקו שוב את הלוחות אל מול הכללים - אולי טעיתם או שאולי יש עוד אופציה?";
+    const vf=$("verify-feedback"); vf.className="verify-feedback err"; vf.textContent=arrErrMsg;
+  }
+}
+
+async function placeSelected(slot){
+  if(!selectedTray) return;
+  const arr = JSON.parse(JSON.stringify(remote.arrangement?.boards || buildInitialArrangement().boards));
+  arr[selectedTray].slot = slot;
+  selectedTray = null;
+  clearArrError();
+  await set(R("arrangement/boards"), arr);
+}
+async function rotateBoard(bid){
+  const arr = JSON.parse(JSON.stringify(remote.arrangement.boards));
+  arr[bid].rot = ((arr[bid].rot||0)+90)%360;
+  clearArrError();
+  await set(R("arrangement/boards"), arr);
+}
+async function removeBoard(bid){
+  const arr = JSON.parse(JSON.stringify(remote.arrangement.boards));
+  arr[bid].slot=-1; arr[bid].rot=0;
+  clearArrError();
+  await set(R("arrangement/boards"), arr);
+}
+
+/* ===================== בדיקת קוד ידנית (ללא חשיפה אוטומטית) ===================== */
+function checkCode(){
+  const val = ($("code-input").value||"").trim();
+  if(val==="12"){
+    $("code-feedback").textContent="";
+    set(R("status/success"), true); // מסונכרן לשני השחקנים
+  }else{
+    $("code-feedback").textContent="יש לכם טעות. זה לא הקוד. נסו להסתכל שוב על הלוחות או לעבור שוב על הכללים";
+  }
+}
+
+/* ===================== פופ-אפ הוראות ===================== */
+function openModal(text){ $("modal-text").textContent=text; $("modal").classList.remove("hidden"); }
+function closeModal(){ $("modal").classList.add("hidden"); }
+
+/* ===================== ניצחון ===================== */
+function renderWin(){
+  const rv=$("reveal"); rv.innerHTML="";
+  TARGET_12.flat().forEach(v=>{
+    const i=document.createElement("i"); if(v) i.className="on"; rv.appendChild(i);
+  });
+  launchConfetti();
+}
+
+/* קונפטי קל בלי ספריות חיצוניות */
+let confettiRunning=false;
+function launchConfetti(){
+  if(confettiRunning) return; confettiRunning=true;
+  const cv=$("confetti"); cv.classList.remove("hidden");
+  const ctx=cv.getContext("2d");
+  function size(){ cv.width=innerWidth; cv.height=innerHeight; }
+  size(); addEventListener("resize",size);
+  const cols=["#00e5ff","#ffd23f","#ff3860","#2e7dff","#bd6bff"];
+  const P=Array.from({length:140},()=>({
+    x:Math.random()*cv.width, y:-20-Math.random()*cv.height,
+    r:4+Math.random()*6, c:cols[Math.floor(Math.random()*cols.length)],
+    vy:2+Math.random()*3.5, vx:-1.5+Math.random()*3, a:Math.random()*Math.PI, va:-0.2+Math.random()*0.4
+  }));
+  const t0=Date.now();
+  (function loop(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    P.forEach(p=>{ p.y+=p.vy; p.x+=p.vx; p.a+=p.va; if(p.y>cv.height+20){p.y=-20;p.x=Math.random()*cv.width;}
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c;
+      ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6); ctx.restore(); });
+    if(Date.now()-t0<7000) requestAnimationFrame(loop);
+    else { ctx.clearRect(0,0,cv.width,cv.height); cv.classList.add("hidden"); confettiRunning=false; }
+  })();
+}
+
+/* ===================== איפוס מלא (חזרה למסך הכניסה) ===================== */
+async function fullReset(){
+  if(!confirm("לאפס את המשחק ולחזור למסך הכניסה?")) return;
+  if(hbTimer){ clearInterval(hbTimer); hbTimer=null; }
+  myRole=null; remote=null;
+  lastProcessedStage=0; lastStage=0; transitioning=false; playStageShown=0; entryGate=false; selectedTray=null;
+  try{ localStorage.clear(); sessionStorage.clear(); localStorage.setItem("cube_cid", clientId); }catch(e){}
+  try{ await remove(R()); }catch(e){}
+  $("taken-note").textContent="";
+  show("open");
+}
+["reset-play","reset-s4","reset-win","reset-open"].forEach(id=>$(id).addEventListener("click",fullReset));
+$("done-btn").addEventListener("click", clickDone);
+$("code-btn").addEventListener("click", checkCode);
+$("verify-btn").addEventListener("click", verifyArrangement);
+$("instr-play").addEventListener("click", ()=>openModal(INSTR_PLAY));
+$("instr-s4").addEventListener("click", ()=>openModal(INSTR_S4));
+$("modal-x").addEventListener("click", closeModal);
+$("modal-close").addEventListener("click", closeModal);
+$("modal").addEventListener("click", e=>{ if(e.target===$("modal")) closeModal(); });
+$("entry-continue").addEventListener("click", ()=>{ entryGate=false; render(); });
+
+/* ===================== הפעלה ===================== */
+initOpening();
+</script>
+</body>
+</html>
